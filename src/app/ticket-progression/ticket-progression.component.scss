@@ -1,0 +1,40 @@
+.prog-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 28px;
+  background: var(--surface, #fff);
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+.badge-ferme {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.circle-container svg {
+  filter: drop-shadow(0 2px 10px rgba(99,102,241,0.12));
+}
+
+.legende {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #6b7280;
+
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    &.amber  { background: #f59e0b; }
+    &.indigo { background: #6366f1; }
+    &.green  { background: #10b981; }
+  }
+}

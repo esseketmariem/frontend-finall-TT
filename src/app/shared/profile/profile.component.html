@@ -1,0 +1,97 @@
+<div class="profile-container">
+
+  <h1 class="profile-title">Mon Profil</h1>
+
+  <div class="profile-grid">
+
+    <!-- Avatar Card -->
+    <div class="avatar-card">
+      <div class="avatar-wrapper">
+        <img [src]="avatarPreview || 'assets/images/default-avatar.png'"
+             class="avatar-img"
+             alt="Avatar"
+             (error)="avatarPreview = null">
+        <label class="avatar-upload-label" title="Changer la photo">
+          <input type="file" (change)="onFileSelected($event)" accept="image/*" style="display:none">
+          📷
+        </label>
+      </div>
+
+      <div class="user-name">{{ user?.prenom }} {{ user?.nom }}</div>
+      <div class="user-poste">{{ user?.poste }}</div>
+      <span class="user-role">{{ user?.role }}</span>
+
+      <div class="avatar-info">
+        <div class="info-row">
+          <span class="info-label">Email</span>
+          <span class="info-value">{{ user?.email }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Équipe</span>
+          <span class="info-value">{{ user?.equipe || '—' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Téléphone</span>
+          <span class="info-value">{{ user?.telephone || '—' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="form-card">
+      <div class="form-section-title">Modifier mes informations</div>
+
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label>Prénom</label>
+            <input formControlName="prenom" type="text" placeholder="Prénom">
+          </div>
+
+          <div class="form-group">
+            <label>Nom</label>
+            <input formControlName="nom" type="text" placeholder="Nom">
+          </div>
+
+          <div class="form-group">
+            <label>Téléphone</label>
+            <input formControlName="telephone" type="tel" placeholder="Ex: 55 123 456">
+          </div>
+
+          <div class="form-group">
+            <label>Poste / Fonction</label>
+            <input formControlName="poste" type="text" placeholder="Ex: Développeur">
+          </div>
+
+          <div class="form-group full-width">
+            <label>Date de Naissance</label>
+            <input formControlName="dateNaissance" type="date">
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="profileForm.invalid || isLoading">
+            {{ isLoading ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+          </button>
+          <button type="button" class="btn-secondary" (click)="openChangePasswordModal()">
+            Changer le mot de passe
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Password Modal -->
+  @if (showPasswordModal) {
+    <div class="modal-overlay">
+      <div class="modal-box">
+        <div class="modal-title">Changer le mot de passe</div>
+        <app-change-password (close)="closeChangePasswordModal()"></app-change-password>
+      </div>
+    </div>
+  }
+
+</div>

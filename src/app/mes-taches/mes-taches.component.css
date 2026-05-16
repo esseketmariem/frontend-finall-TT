@@ -1,0 +1,114 @@
+.taches-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tache-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  background: #fff;
+  transition: opacity 0.3s;
+
+  &.fait { opacity: 0.6; }
+}
+
+.tache-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.badge-priorite {
+  padding: 2px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  &.prio-haute   { background: #fee2e2; color: #991b1b; }
+  &.prio-moyenne { background: #fef3c7; color: #92400e; }
+  &.prio-basse   { background: #d1fae5; color: #065f46; }
+}
+
+.badge-statut {
+  padding: 2px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  &.st-A_faire  { background: #f3f4f6; color: #374151; }
+  &.st-En_cours { background: #ede9fe; color: #5b21b6; }
+  &.st-Fait     { background: #d1fae5; color: #065f46; }
+}
+
+.tache-titre { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
+.tache-desc  { font-size: 13px; color: #6b7280; margin: 0 0 12px; }
+
+.tache-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 14px;
+}
+
+.tache-actions {
+  display: flex;
+  gap: 10px;
+
+  button {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: opacity 0.2s;
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
+  .btn-done     { background: #6366f1; color: #fff; }
+  .btn-probleme { background: #fef3c7; color: #92400e; }
+}
+
+
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  width: 480px;
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  h3 { margin: 0; font-size: 16px; }
+
+  textarea {
+    width: 100%; padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+
+  .btn-send  { background: #6366f1; color: #fff; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; }
+  .btn-close { background: #f3f4f6; color: #374151; padding: 8px; border: none; border-radius: 8px; cursor: pointer; }
+
+  .ia-reponse {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 13px;
+    color: #065f46;
+  }
+}

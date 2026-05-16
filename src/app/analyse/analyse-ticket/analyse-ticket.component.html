@@ -1,0 +1,156 @@
+<div class="at-page">
+
+  <div class="at-loading" *ngIf="isLoading">
+    <div class="at-spinner"></div>
+    <span>Chargement de l'analyse...</span>
+  </div>
+
+  <div class="at-error" *ngIf="!isLoading && errorMessage">
+    <span>⚠ {{ errorMessage }}</span>
+    <button (click)="retour()">← Retour</button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !errorMessage && ticket">
+
+    <button class="at-back" (click)="retour()">← Retour au dashboard</button>
+
+    <!-- ── Header ── -->
+    <div class="at-header">
+      <div class="at-header__info">
+        <span class="at-id">#{{ ticket.id }}</span>
+        <h1 class="at-title">{{ ticket.titre }}</h1>
+        <span class="at-desc">{{ ticket.description }}</span>
+      </div>
+      <span [ngClass]="getPrioriteClass(ticket.priorite)" class="at-prio">
+        {{ getPrioriteLabel(ticket.priorite) }}
+      </span>
+    </div>
+
+    <!-- ── Résumé IA ── -->
+    <div class="at-summary" *ngIf="ticket.aiSummary">
+      <span class="at-summary__label">🤖 Résumé IA</span>
+      <p>{{ ticket.aiSummary }}</p>
+    </div>
+
+    <!-- ── Progression globale ── -->
+    <div class="at-progress-section">
+
+      <!-- Circle -->
+      <div class="at-circle-wrapper">
+        <svg class="at-circle-svg" viewBox="0 0 100 100">
+          <circle class="at-circle-bg" cx="50" cy="50" r="45"/>
+          <circle class="at-circle-fill"
+                  cx="50" cy="50" r="45"
+                  [style.stroke]="getProgressColor()"
+                  [style.stroke-dashoffset]="getCircleDashoffset()"/>
+        </svg>
+        <div class="at-circle-text">
+          <span class="at-circle-pct">{{ getProgress() }}%</span>
+          <span class="at-circle-lbl">Terminé</span>
+        </div>
+        <div class="at-ticket-ferme" *ngIf="ticketFerme">🎉 Ticket clôturé</div>
+      </div>
+
+      <!-- Stats -->
+      <div class="at-progress-stats">
+        <div class="at-stat-box">
+          <span class="at-stat-box__num">{{ ticket.sousTickets?.length ?? 0 }}</span>
+          <span class="at-stat-box__lbl">Sous-tickets</span>
+        </div>
+        <div class="at-stat-box">
+          <span class="at-stat-box__num">
+            {{ ticket.sousTickets ? getTotalTaches() : 0 }}
+          </span>
+          <span class="at-stat-box__lbl">Tâches totales</span>
+        </div>
+        <div class="at-stat-box at-stat-box--done">
+          <span class="at-stat-box__num">
+            {{ ticket.sousTickets ? getTotalDone() : 0 }}
+          </span>
+          <span class="at-stat-box__lbl">Tâches terminées</span>
+        </div>
+        <button class="at-refresh-btn" (click)="refreshNow()">
+          🔄 Actualiser
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ── Bar globale ── -->
+    <div class="at-progress-global">
+      <div class="at-progress-global__label">
+        <span>Progression globale</span>
+        <span class="at-progress-global__pct">{{ getProgress() }}%</span>
+      </div>
+      <div class="at-progress-bar">
+        <div class="at-progress-bar__fill"
+             [style.width.%]="getProgress()"
+             [style.background]="getProgressColor()">
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Sous-tickets ── -->
+    <div class="at-section-title">
+      📋 Sous-tickets ({{ ticket.sousTickets?.length ?? 0 }})
+    </div>
+
+    <div class="at-empty" *ngIf="!ticket.sousTickets || ticket.sousTickets.length === 0">
+      <div>🔍</div>
+      <p>Aucun sous-ticket généré pour ce ticket.</p>
+    </div>
+
+    <div class="at-st-list" *ngIf="ticket.sousTickets && ticket.sousTickets.length > 0">
+      <div class="at-st-card" *ngFor="let st of ticket.sousTickets; let i = index">
+
+        <div class="at-st-card__head">
+          <div class="at-st-card__head-left">
+            <span class="at-st-num">ST{{ i + 1 }}</span>
+            <span class="at-st-title">{{ st.titre }}</span>
+          </div>
+          <div class="at-st-card__head-right">
+            <span class="at-st-equipe" *ngIf="st.equipeResponsable">
+              👥 {{ st.equipeResponsable }}
+            </span>
+            <span class="at-st-pct">{{ getSousTicketProgress(st) }}%</span>
+          </div>
+        </div>
+
+        <p class="at-st-desc" *ngIf="st.description">{{ st.description }}</p>
+
+        <div class="at-progress-bar at-progress-bar--sm">
+          <div class="at-progress-bar__fill"
+               [style.width.%]="getSousTicketProgress(st)">
+          </div>
+        </div>
+
+        <div class="at-taches" *ngIf="st.taches && st.taches.length > 0">
+          <div class="at-tache" *ngFor="let tache of st.taches"
+               [class.at-tache--done]="tache.statut === 'Fait'">
+            <span class="at-tache__icon">
+              {{ tache.statut === 'Fait' ? '✅' : tache.statut === 'En_cours' ? '🔄' : '⏳' }}
+            </span>
+            <div class="at-tache__info">
+              <span class="at-tache__titre">{{ tache.titre }}</span>
+              <span class="at-tache__meta" *ngIf="tache.description">
+                {{ tache.description }}
+              </span>
+            </div>
+            <span class="at-tache__statut"
+                  [class.at-tache__statut--done]="tache.statut === 'Fait'">
+              {{ tache.statut === 'Fait' ? 'Terminée' :
+                 tache.statut === 'En_cours' ? 'En cours' : 'À faire' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="at-taches-empty"
+             *ngIf="!st.taches || st.taches.length === 0">
+          Aucune tâche pour ce sous-ticket.
+        </div>
+
+      </div>
+    </div>
+
+  </ng-container>
+</div>

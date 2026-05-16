@@ -1,0 +1,85 @@
+<div class="app-root">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="brand">Ticket<span>Flow</span></span>
+      <div class="breadcrumb">
+        <span>Tunisie Telecom</span>
+        <span>›</span>
+        <span class="cur">{{ getCurrentTitle() }}</span>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="dot-online"></div>
+      <div class="user-pill cursor-pointer hover:bg-gray-100 transition"
+           (click)="goToProfile()">
+        <div class="user-avatar">
+          <img [src]="currentUser?.avatarUrl || 'assets/default-avatar.png'"
+               alt="Avatar" class="avatar-img">
+        </div>
+        <div class="user-info">
+          <span class="user-name">{{ currentUser?.prenom }} {{ currentUser?.nom }}</span>
+          <span class="user-role">{{ currentUser?.poste }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">Gestion de Projet</div>
+
+      <div class="nav-item"
+           [class.active]="view === 'create'"
+           (click)="view = 'create'">
+        <svg class="nav-svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="2" y="2" width="12" height="12" rx="2"/>
+          <line x1="8" y1="5" x2="8" y2="11"/>
+          <line x1="5" y1="8" x2="11" y2="8"/>
+        </svg>
+        Nouveau Ticket
+      </div>
+
+      <div class="nav-item"
+           [class.active]="view === 'list'"
+           (click)="view = 'list'">
+        <svg class="nav-svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="2" y="2" width="12" height="12" rx="2"/>
+          <line x1="5" y1="5" x2="11" y2="5"/>
+          <line x1="5" y1="8" x2="11" y2="8"/>
+          <line x1="5" y1="11" x2="9" y2="11"/>
+        </svg>
+        Mes Tickets
+      </div>
+
+      <div class="nav-item"
+           [class.active]="view === 'profile'"
+           (click)="view = 'profile'">
+        <svg class="nav-svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+          <path d="M14 14a6 6 0 0 0-12 0"/>
+        </svg>
+        Mon Profil
+      </div>
+
+    </aside>
+
+    <!-- CONTENT -->
+    <div class="content">
+      @if (view === 'create') {
+        <app-add-ticket></app-add-ticket>
+      }
+      @if (view === 'list') {
+        <app-listeticket></app-listeticket>
+      }
+      @if (view === 'profile') {
+        <app-profile></app-profile>
+      }
+    </div>
+
+  </div>
+</div>

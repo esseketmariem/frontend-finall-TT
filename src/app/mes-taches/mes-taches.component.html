@@ -1,0 +1,55 @@
+<div class="taches-container">
+  <h2>Mes tâches</h2>
+
+  <div class="tache-card" *ngFor="let t of taches" [class.fait]="t.statut === 'Fait'">
+
+    <div class="tache-header">
+      <span class="badge-priorite" [class]="getPrioriteClass(t.priorite)">
+        {{ t.priorite }}
+      </span>
+      <span class="badge-statut" [class]="'st-' + t.statut">
+        {{ getStatutLabel(t.statut) }}
+      </span>
+    </div>
+
+    <h3 class="tache-titre">{{ t.titre }}</h3>
+    <p class="tache-desc">{{ t.description }}</p>
+
+    <div class="tache-meta">
+      <span>📁 {{ t.sousTicketTitre }}</span>
+      <span *ngIf="t.dateLimite">📅 {{ t.dateLimite | date:'dd/MM/yyyy' }}</span>
+    </div>
+
+    <div class="tache-actions">
+      <button class="btn-done" (click)="terminer(t)" [disabled]="t.statut === 'Fait'">
+        ✅ Marquer comme terminée
+      </button>
+      <button class="btn-probleme" (click)="ouvrirProbleme(t)">
+        ⚠️ Signaler un problème
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal problème IA -->
+<div class="modal-overlay" *ngIf="tacheSelectionnee" (click)="tacheSelectionnee = undefined">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <h3>Problème sur : {{ tacheSelectionnee.titre }}</h3>
+
+    <textarea [(ngModel)]="problemeTexte"
+      placeholder="Décrivez votre problème..."
+      rows="4"></textarea>
+
+    <button class="btn-send" (click)="envoyerProbleme()" [disabled]="loadingIA">
+      {{ loadingIA ? '⏳ Analyse en cours...' : '🤖 Envoyer à l\'IA' }}
+    </button>
+
+    <div class="ia-reponse" *ngIf="reponseIA">
+      <strong>Solution proposée par l'IA :</strong>
+      <p>{{ reponseIA }}</p>
+    </div>
+
+    <button class="btn-close" (click)="tacheSelectionnee = undefined">Fermer</button>
+  </div>
+</div>

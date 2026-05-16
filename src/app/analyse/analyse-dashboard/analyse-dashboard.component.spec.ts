@@ -1,0 +1,179 @@
+<!-- src/app/analyse/analyse-dashboard/analyse-dashboard.component.html -->
+
+<div class="ba-dashboard">
+
+  <!-- ── Header ──────────────────────────────────── -->
+  <header class="ba-header">
+    <div class="ba-header__left">
+      <span class="ba-header__icon">🧠</span>
+      <div>
+        <h1 class="ba-header__title">Analyse des Tickets</h1>
+        <p class="ba-header__sub">Business Analyst — Tickets acceptés en attente d'analyse IA</p>
+      </div>
+    </div>
+    <div class="ba-header__stats">
+      <div class="stat-pill">
+        <span class="stat-pill__num">{{ tickets.length }}</span>
+        <span class="stat-pill__lbl">Tickets</span>
+      </div>
+      <div class="stat-pill stat-pill--done">
+        <span class="stat-pill__num">{{ tickets | analyseCount }}</span>
+        <span class="stat-pill__lbl">Analysés</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Error ────────────────────────────────────── -->
+  <div class="ba-error" *ngIf="errorMessage">
+    <span>⚠️ {{ errorMessage }}</span>
+    <button (click)="loadAcceptedTickets()">Réessayer</button>
+  </div>
+
+  <!-- ── Loading ──────────────────────────────────── -->
+  <div class="ba-loading" *ngIf="isLoading">
+    <div class="ba-spinner"></div>
+    <span>Chargement des tickets…</span>
+  </div>
+
+  <!-- ── Empty ────────────────────────────────────── -->
+  <div class="ba-empty" *ngIf="!isLoading && tickets.length === 0 && !errorMessage">
+    <div class="ba-empty__icon">📋</div>
+    <p>Aucun ticket accepté pour le moment.</p>
+  </div>
+
+  <!-- ── Ticket Grid ──────────────────────────────── -->
+  <div class="ticket-grid" *ngIf="!isLoading && tickets.length > 0">
+    <div
+      class="ticket-card"
+      *ngFor="let ticket of tickets"
+      [class.ticket-card--analysed]="ticket.analyseIAEffectuee"
+    >
+      <!-- Badge IA -->
+      <span class="ia-badge" *ngIf="ticket.analyseIAEffectuee">
+        ✅ Analysé par IA
+      </span>
+      <span class="ia-badge ia-badge--pending" *ngIf="!ticket.analyseIAEffectuee">
+        ⏳ En attente d'analyse
+      </span>
+
+      <!-- En-tête carte -->
+      <div class="ticket-card__head">
+        <span class="ticket-card__id">#{{ ticket.id }}</span>
+        <span class="ticket-card__prio" [ngClass]="getPrioriteClass(ticket.priorite)">
+          {{ getPrioriteLabel(ticket.priorite) }}
+        </span>
+      </div>
+
+      <h3 class="ticket-card__title">{{ ticket.titre }}</h3>
+      <p class="ticket-card__desc">{{ ticket.description | slice:0:120 }}{{ ticket.description && ticket.description.length > 120 ? '…' : '' }}</p>
+
+      <!-- Systèmes détectés -->
+      <div class="ticket-card__tags" *ngIf="ticket.systemesDetectes?.length">
+        <span class="sys-tag" *ngFor="let sys of ticket.systemesDetectes">{{ sys }}</span>
+      </div>
+
+      <!-- Résumé IA -->
+      <div class="ticket-card__summary" *ngIf="ticket.aiSummary">
+        <span class="summary-label">🤖 Résumé IA</span>
+        <p>{{ ticket.aiSummary | slice:0:150 }}…</p>
+      </div>
+
+      <!-- Méta -->
+      <div class="ticket-card__meta">
+        <span>📅 {{ ticket.dateCreation | date:'dd/MM/yyyy' }}</span>
+        <span *ngIf="ticket.nombreSousTickets">
+          🔀 {{ ticket.nombreSousTickets }} sous-ticket(s)
+        </span>
+      </div>
+
+      <!-- Progression -->
+      <div class="ticket-card__progress" *ngIf="ticket.analyseIAEffectuee">
+        <div class="progress-bar">
+          <div class="progress-bar__fill" [style.width.%]="getProgress(ticket)"></div>
+        </div>
+        <span class="progress-pct">{{ getProgress(ticket) }}%</span>
+      </div>
+
+      <!-- Actions -->
+      <div class="ticket-card__actions">
+        <button
+          class="btn btn--analyse"
+          *ngIf="!ticket.analyseIAEffectuee"
+          [disabled]="analyzingId === ticket.id"
+          (click)="lancerAnalyse(ticket)"
+        >
+          <span *ngIf="analyzingId !== ticket.id">🚀 Lancer l'analyse IA</span>
+          <span *ngIf="analyzingId === ticket.id" class="btn-spinner">
+            <span class="dot-spin"></span> Analyse en cours…
+          </span>
+        </button>
+
+        <button
+          class="btn btn--voir"
+          *ngIf="ticket.analyseIAEffectuee"
+          (click)="voirAnalyse(ticket)"
+        >
+          🔍 Voir l'analyse
+        </button>
+
+        <button
+          class="btn btn--rerun"
+          *ngIf="ticket.analyseIAEffectuee"
+          [disabled]="analyzingId === ticket.id"
+          (click)="lancerAnalyse(ticket)"
+        >
+          🔄 Re-analyser
+        </button>
+      </div>
+
+      <!-- ── Sous-tickets & Génération tâches ── -->
+      <div class="ticket-card__sous" *ngIf="ticket.analyseIAEffectuee">
+        <button class="btn btn--sous" (click)="voirSousTickets(ticket)">
+          {{ expandedTicketId === ticket.id ? '▲ Masquer les sous-tickets' : '▼ Voir sous-tickets & générer tâches' }}
+        </button>
+
+        <div class="sous-tickets-panel" *ngIf="expandedTicketId === ticket.id">
+
+          <div *ngIf="!sousTicketsMap[ticket.id!]" class="ba-loading">
+            <div class="ba-spinner"></div>
+            <span>Chargement des sous-tickets…</span>
+          </div>
+
+          <div *ngFor="let st of sousTicketsMap[ticket.id!]" class="sous-ticket-item">
+            <div class="sous-ticket-item__head">
+              <span class="sous-ticket-item__titre">🔀 {{ st.titre }}</span>
+              <span class="sous-ticket-item__equipe">👥 {{ st.equipeResponsable }}</span>
+            </div>
+
+            <button class="btn btn--generer"
+                    [disabled]="generatingTachesId === st.id"
+                    (click)="genererTaches(st.id)">
+              <span *ngIf="generatingTachesId !== st.id">🤖 Générer les tâches IA</span>
+              <span *ngIf="generatingTachesId === st.id" class="btn-spinner">
+                <span class="dot-spin"></span> Génération…
+              </span>
+            </button>
+
+            <!-- Tâches générées -->
+            <div class="taches-list" *ngIf="tachesMap[st.id]">
+              <div class="tache-item" *ngFor="let t of tachesMap[st.id]">
+                <span class="tache-item__titre">{{ t.titre }}</span>
+                <span class="tache-item__prio" [ngClass]="getPrioriteClass(t.priorite)">
+                  {{ t.priorite }}
+                </span>
+                <span class="tache-item__assignee" *ngIf="t.assigneeNom">
+                  👤 {{ t.assigneePrenom }} {{ t.assigneeNom }}
+                </span>
+                <span class="tache-item__assignee" *ngIf="!t.assigneeNom">
+                  👤 Non assigné
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -1,0 +1,111 @@
+<div class="page-wrapper" [class.dark]="isDark">
+  <button class="theme-toggle" (click)="isDark = !isDark" type="button">
+    <svg *ngIf="!isDark" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2">
+      <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>
+    </svg>
+    <svg *ngIf="isDark" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/>
+      <line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+  </button>
+
+  <div class="container">
+
+    <!-- LEFT -->
+    <div class="left">
+      <div class="left-tag">
+        <span class="left-dot"></span>
+        Ma Plateforme
+      </div>
+      <h2>Rejoignez la plateforme</h2>
+      <p>Créez votre compte pour gérer vos tickets, suivre vos projets et collaborer avec votre équipe.</p>
+
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-num">2</div>
+          <div class="stat-label">Rôles disponibles</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">Tickets</div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-icon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="#2563eb" stroke-width="1.8">
+            <circle cx="8" cy="8" r="6"/>
+            <line x1="8" y1="7" x2="8" y2="11"/>
+            <circle cx="8" cy="5" r="0.5" fill="#2563eb"/>
+          </svg>
+        </div>
+        <div class="info-text">
+          <strong>En attente de validation</strong><br>
+          Votre compte sera activé après validation par l'administrateur
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+      <div class="right-header">
+        <h2>Créer un compte</h2>
+        <p>Remplissez le formulaire ci-dessous</p>
+      </div>
+
+      <div class="form-row">
+        <div class="field-group">
+          <label class="field-label">Nom</label>
+          <input class="field-input" type="text" placeholder="Dupont"
+            [(ngModel)]="nom" name="nom"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Prénom</label>
+          <input class="field-input" type="text" placeholder="Jean"
+            [(ngModel)]="prenom" name="prenom"/>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Adresse e-mail</label>
+        <input class="field-input" type="email" placeholder="vous@exemple.com"
+          [(ngModel)]="email" name="email"/>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Rôle</label>
+        <select class="field-input field-select" [(ngModel)]="role" name="role">
+          <!-- ✅ ADMIN supprimé -->
+          <option value="BUSINESS_ANALYST">Business Analyst</option>
+          <option value="METIER">Métier</option>
+        </select>
+      </div>
+
+      <div *ngIf="successMessage" class="success-msg">{{ successMessage }}</div>
+      <div *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</div>
+
+      <button class="btn-register" (click)="register()">Créer mon compte</button>
+
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span class="divider-text">Déjà inscrit ?</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <button class="btn-login-link" type="button" (click)="goToLogin()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M10 8H3m0 0l3-3M3 8l3 3"/>
+          <path d="M7 3h6v10H7"/>
+        </svg>
+        Se connecter
+      </button>
+    </div>
+  </div>
+</div>

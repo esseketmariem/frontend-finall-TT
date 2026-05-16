@@ -1,0 +1,204 @@
+<div>
+
+  <!-- KPI -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">Total</div>
+      <div class="stat-value">{{ totalUsers }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Admins</div>
+      <div class="stat-value" style="color:#6eaaec">{{ countAdmins }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Métier</div>
+      <div class="stat-value" style="color:#3db07a">{{ countMetier }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Business Analyst</div>
+      <div class="stat-value" style="color:#d4a017">{{ countBA }}</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="6.5" cy="6.5" r="4.5"/>
+        <line x1="10" y1="10" x2="14" y2="14"/>
+      </svg>
+      <input class="search-input" type="text" placeholder="Rechercher un utilisateur…"
+             [(ngModel)]="searchTerm" (ngModelChange)="onSearch()"/>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn btn-primary" (click)="openModal()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="2" x2="8" y2="14"/>
+          <line x1="2" y1="8" x2="14" y2="8"/>
+        </svg>
+        Ajouter
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+
+    <div class="empty-state" *ngIf="isLoading">
+      <span class="empty-icon">↻</span>Chargement…
+    </div>
+    <div class="empty-state" *ngIf="!isLoading && errorMessage">
+      <span class="empty-icon">⚠</span>{{ errorMessage }}
+    </div>
+    <div class="empty-state" *ngIf="!isLoading && !errorMessage && filtered.length === 0">
+      <span class="empty-icon">◈</span>Aucun utilisateur trouvé.
+    </div>
+
+    <table *ngIf="!isLoading && !errorMessage && filtered.length > 0">
+      <thead>
+        <tr>
+          <th class="th-sort" (click)="sort('nom')">
+            Utilisateur <i class="sort-icon">{{ sortCol==='nom' ? (sortAsc?'↑':'↓') : '↕' }}</i>
+          </th>
+          <th class="th-sort" (click)="sort('role')">
+            Rôle <i class="sort-icon">{{ sortCol==='role' ? (sortAsc?'↑':'↓') : '↕' }}</i>
+          </th>
+          <th class="th-sort" (click)="sort('statut')">
+            Statut <i class="sort-icon">{{ sortCol==='statut' ? (sortAsc?'↑':'↓') : '↕' }}</i>
+          </th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of paginated">
+
+          <!-- Utilisateur -->
+          <td>
+            <div class="user-cell">
+              <div class="avatar" [style.background]="avatarBg(u)" [style.color]="avatarColor(u)">
+                {{ initials(u) }}
+              </div>
+              <div>
+                <div class="user-name">{{ u.nom }} {{ u.prenom }}</div>
+                <div class="user-email">{{ u.email }}</div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Rôle -->
+          <td>
+            <span [class]="getRoleClass(u.role)">
+              <span class="badge-dot"></span>
+              {{ getRoleLabel(u.role) }}
+            </span>
+          </td>
+
+          <!-- Statut -->
+          <td>
+            <span [class]="getStatutClass(u.statut)">
+              <span class="badge-dot"></span>
+              {{ getStatutLabel(u.statut) }}
+            </span>
+          </td>
+
+          <!-- Actions -->
+          <td>
+            <div class="actions">
+
+              <!-- Boutons Accepter/Refuser si EN ATTENTE -->
+              <ng-container *ngIf="u.statut === 'EN_ATTENTE'">
+                <button class="action-btn success" title="Accepter" (click)="accepter(u)">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="2,8 6,12 14,4"/>
+                  </svg>
+                </button>
+                <button class="action-btn warning" title="Refuser" (click)="refuser(u)">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="3" x2="13" y2="13"/>
+                    <line x1="13" y1="3" x2="3" y2="13"/>
+                  </svg>
+                </button>
+              </ng-container>
+
+              <button class="action-btn" title="Modifier" (click)="openModal(u)">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M11 2l3 3-9 9H2v-3L11 2z"/>
+                </svg>
+              </button>
+              <button class="action-btn danger" title="Supprimer" (click)="deleteUser(u)">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <polyline points="3,4 13,4"/>
+                  <path d="M5 4V2h6v2"/>
+                  <path d="M4 4l1 10h6l1-10"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="filtered.length > pageSize">
+      <span>{{ filtered.length }} utilisateurs — page {{ currentPage }} / {{ totalPages }}</span>
+      <div class="pag-buttons">
+        <button class="pag-btn" (click)="goPage(currentPage-1)" [disabled]="currentPage===1">‹</button>
+        <button class="pag-btn" *ngFor="let p of pages"
+                [class.active]="p===currentPage" (click)="goPage(p)">{{ p }}</button>
+        <button class="pag-btn" (click)="goPage(currentPage+1)" [disabled]="currentPage===totalPages">›</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal créer / modifier -->
+<div class="modal-backdrop" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-title">{{ editUser ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur' }}</div>
+
+    <div class="form-group">
+      <label class="form-label">Nom</label>
+      <input class="form-input" type="text" placeholder="Nom" [(ngModel)]="form.nom"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Prénom</label>
+      <input class="form-input" type="text" placeholder="Prénom" [(ngModel)]="form.prenom"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" type="email" placeholder="email@exemple.com" [(ngModel)]="form.email"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Rôle</label>
+      <select class="form-select" [(ngModel)]="form.role">
+        <option [ngValue]="Role.ADMIN">Administrateur</option>
+        <option [ngValue]="Role.METIER">Métier</option>
+        <option [ngValue]="Role.BUSINESS_ANALYST">Business Analyst</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" (click)="closeModal()">Annuler</button>
+      <button class="btn btn-primary" (click)="saveUser()">
+        {{ editUser ? 'Enregistrer' : 'Créer' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal mot de passe pour accepter -->
+<div class="modal-backdrop" *ngIf="showPasswordModal" (click)="showPasswordModal=false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-title">Définir le mot de passe</div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe pour {{ userToAccept?.nom }} {{ userToAccept?.prenom }}</label>
+      <input class="form-input" type="password" placeholder="Mot de passe" [(ngModel)]="passwordInput"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" (click)="showPasswordModal=false">Annuler</button>
+      <button class="btn btn-primary" (click)="confirmerAcceptation()">Confirmer</button>
+    </div>
+  </div>
+</div>

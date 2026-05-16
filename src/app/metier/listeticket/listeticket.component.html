@@ -1,0 +1,294 @@
+<div class="app-root">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="brand">Ticket<span>Flow</span></span>
+      <div class="breadcrumb">
+        <span>Tunisie Telecom</span>
+        <span>›</span>
+        <span class="cur">Gestion de Projet</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="dot-online"></div>
+    </div>
+  </div>  <!-- ← balise fermante manquante, ajoutée ici -->
+
+  <div class="main-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">Vues rapides</div>
+
+      <div class="nav-item active" (click)="quickFilter('ALL')">
+        <span class="dot-status all"></span>
+        Tous les tickets
+        <span class="nav-badge">{{ tickets.length }}</span>
+      </div>
+      <div class="nav-item" (click)="quickFilter('A_faire')">
+        <span class="dot-status todo"></span>
+        À traiter
+        <span class="nav-badge">{{ countTodo }}</span>
+      </div>
+      <div class="nav-item" (click)="quickFilter('En_cours')">
+        <span class="dot-status prog"></span>
+        En cours
+        <span class="nav-badge">{{ countInProgress }}</span>
+      </div>
+      <div class="nav-item" (click)="quickFilter('Fait')">
+        <span class="dot-status done"></span>
+        Résolus
+        <span class="nav-badge">{{ countDone }}</span>
+      </div>
+
+      <div class="sidebar-section" style="margin-top: 12px;">Priorités</div>
+      <div class="nav-item" (click)="selectedPriorite='ALL'; filterTickets()">
+        <span class="nav-icon">—</span>
+        Toutes
+      </div>
+      <div class="nav-item" (click)="selectedPriorite='Haute'; filterTickets()">
+        <span class="nav-icon">↑</span>
+        Haute
+      </div>
+      <div class="nav-item" (click)="selectedPriorite='Moyenne'; filterTickets()">
+        <span class="nav-icon">→</span>
+        Moyenne
+      </div>
+      <div class="nav-item" (click)="selectedPriorite='Basse'; filterTickets()">
+        <span class="nav-icon">↓</span>
+        Basse
+      </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="content">
+
+      <div class="page-header">
+        <div>
+          <div class="page-title">Tickets de Projet</div>
+          <div class="page-sub">Gestion de Projet</div>
+        </div>
+      </div>
+
+      <!-- Statistiques -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-label">Total</div>
+          <div class="stat-value">{{ tickets.length }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">À traiter</div>
+          <div class="stat-value todo-color">{{ countTodo }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">En cours</div>
+          <div class="stat-value prog-color">{{ countInProgress }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Résolus</div>
+          <div class="stat-value done-color">{{ countDone }}</div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input
+            type="text"
+            placeholder="Rechercher un ticket..."
+            [(ngModel)]="searchText"
+            (input)="filterTickets()">
+        </div>
+
+        <select [(ngModel)]="selectedStatut" (change)="filterTickets()">
+          <option value="ALL">Tous les statuts</option>
+          <option value="A_faire">À traiter</option>
+          <option value="En_cours">En cours</option>
+          <option value="Fait">Résolus</option>
+        </select>
+
+        <select [(ngModel)]="selectedPriorite" (change)="filterTickets()">
+          <option value="ALL">Toutes les priorités</option>
+          <option value="Haute">Haute</option>
+          <option value="Moyenne">Moyenne</option>
+          <option value="Basse">Basse</option>
+        </select>
+      </div>
+
+      <!-- Tableau -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Description</th>
+              <th>Statut</th>
+              <th>Priorité</th>
+              <th>Commentaires</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let t of filteredTickets">
+
+              <td>
+                <span class="ticket-id">{{ formatTicketId(t.id!) }}</span>
+                <div class="td-titre" style="margin-top: 4px;">{{ t.titre }}</div>
+              </td>
+
+              <td>
+                <div class="td-desc">{{ t.description }}</div>
+              </td>
+
+              <td>
+                <span class="badge"
+                  [ngClass]="{
+                    'badge-todo':     t.statut === 'A_faire',
+                    'badge-progress': t.statut === 'En_cours',
+                    'badge-done':     t.statut === 'Fait'
+                  }">
+                  <span class="badge-dot"></span>
+                  {{ t.statut === 'A_faire' ? 'À traiter' : t.statut === 'En_cours' ? 'En cours' : 'Résolu' }}
+                </span>
+              </td>
+
+              <td>
+                <span class="prio"
+                  [ngClass]="{
+                    'prio-haute':   t.priorite === 'Haute',
+                    'prio-moyenne': t.priorite === 'Moyenne',
+                    'prio-basse':   t.priorite === 'Basse'
+                  }">
+                  <span class="prio-dot"></span>
+                  {{ t.priorite }}
+                </span>
+              </td>
+
+              <td>
+                <button class="comment-btn" (click)="openCommentBox(t.id!)">
+                  💬 {{ t.nombreCommentaires || 0 }}
+                </button>
+              </td>
+
+              <td>
+                <div class="actions-cell">
+                  <button
+                    class="action-btn"
+                    title="Modifier (uniquement si À traiter)"
+                    [disabled]="t.statut !== 'A_faire'"
+                    (click)="openEditModal(t)">
+                    ✏
+                  </button>
+                  <button
+                    class="action-btn danger"
+                    title="Supprimer"
+                    (click)="deleteTicket(t.id!)">
+                    🗑
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="empty-state" *ngIf="filteredTickets.length === 0">
+          <div class="empty-icon">📭</div>
+          Aucun ticket ne correspond aux filtres sélectionnés.
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+</div>
+
+
+<!-- MODAL COMMENTAIRES -->
+<div class="overlay" *ngIf="showCommentModal" (click)="closeCommentBox()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Commentaires</div>
+        <div class="modal-sub">{{ formatTicketId(activeCommentTicketId) }}</div>
+      </div>
+      <button class="modal-close" (click)="closeCommentBox()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="comment-list-wrap">
+        <div class="no-comments" *ngIf="commentaires.length === 0">
+          Aucun commentaire pour ce ticket.
+        </div>
+        <div class="comment-item" *ngFor="let c of commentaires">
+          <div class="comment-avatar">
+            {{ getInitials(c.username || c.utilisateur?.nom || 'U') }}
+          </div>
+          <div class="comment-content">
+            <div class="comment-meta">
+              {{ c.username || c.utilisateur?.nom || 'Tunisie Telecom' }}
+            </div>
+            <div class="comment-text">{{ c.commentaire }}</div>
+          </div>
+          <button class="comment-del" title="Supprimer"
+                  (click)="deleteComment(c.id)">✕</button>
+        </div>
+      </div>
+      <div class="comment-input-row">
+        <input
+          type="text"
+          placeholder="Ajouter un commentaire..."
+          [(ngModel)]="commentText"
+          (keyup.enter)="addComment()">
+        <button class="btn btn-primary" (click)="addComment()">Envoyer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL MODIFICATION -->
+<div class="overlay" *ngIf="showEditModal" (click)="closeEditModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Modifier le ticket</div>
+        <div class="modal-sub" *ngIf="editingTicket">
+          {{ formatTicketId(editingTicket.id) }}
+        </div>
+      </div>
+      <button class="modal-close" (click)="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body" *ngIf="editingTicket">
+      <div class="form-row">
+        <label class="form-label">Titre</label>
+        <input class="form-input" type="text" [(ngModel)]="editingTicket.titre">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea"
+                  [(ngModel)]="editingTicket.description"></textarea>
+      </div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="form-label">Priorité</label>
+          <select class="form-select" [(ngModel)]="editingTicket.priorite">
+            <option value="Haute">Haute</option>
+            <option value="Moyenne">Moyenne</option>
+            <option value="Basse">Basse</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">Date souhaitée</label>
+          <input class="form-input" type="date"
+                 [(ngModel)]="editingTicket.dateSouhaite">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" (click)="closeEditModal()">Annuler</button>
+      <button class="btn btn-primary" (click)="saveEdit()">Enregistrer</button>
+    </div>
+  </div>
+</div>
