@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AuthService, LoginResponse } from '../../services/auth.service';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -10,9 +10,8 @@ import { NgIf } from '@angular/common';
   imports: [FormsModule, NgIf, RouterModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  encapsulation: ViewEncapsulation.None
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   email:        string = '';
   password:     string = '';
   errorMessage: string = '';
@@ -24,26 +23,37 @@ export class LoginComponent {
     private router: Router
   ) {}
 
+  ngOnInit(): void {
+    if (this.authService.isLoggedIn()) {
+      const role = this.authService.getRole();
+      if (role === 'ADMIN')                this.router.navigate(['/admin-dashboard']);
+      else if (role === 'BUSINESS_ANALYST') this.router.navigate(['/analyse-dashboard']);
+      else if (role === 'METIER')           this.router.navigate(['/metier']);
+      else if (role === 'TECHNIQUE')        this.router.navigate(['/technique']);
+    }
+  }
+
   login(): void {
     this.errorMessage = '';
+
+    if (!this.email || !this.password) {
+      this.errorMessage = 'Veuillez renseigner votre email et mot de passe.';
+      return;
+    }
+
     this.authService.login({
       email:    this.email,
       password: this.password
     }).subscribe({
       next: (response: LoginResponse) => {
-        console.log('==============================');
-        console.log('Utilisateur connecté :', response.email);
-        console.log('Role :', response.role);
-        console.log('JWT Token :', response.token);
-        console.log('==============================');
-
-        if (response.role === 'ADMIN') {
+        const role = response.role;
+        if (role === 'ADMIN') {
           this.router.navigate(['/admin-dashboard']);
-        } else if (response.role === 'BUSINESS_ANALYST') {
+        } else if (role === 'BUSINESS_ANALYST') {
           this.router.navigate(['/analyse-dashboard']);
-        } else if (response.role === 'METIER') {
+        } else if (role === 'METIER') {
           this.router.navigate(['/metier']);
-        } else if (response.role === 'TECHNIQUE') {
+        } else if (role === 'TECHNIQUE') {
           this.router.navigate(['/technique']);
         } else {
           this.router.navigate(['/login']);
@@ -51,8 +61,18 @@ export class LoginComponent {
       },
       error: (err) => {
         console.error('Erreur login :', err);
-        console.error('Message backend :', JSON.stringify(err.error));
-        this.errorMessage = 'Email ou mot de passe incorrect';
+        if (err.status === 0) {
+          this.errorMessage = 'Serveur inaccessible — vérifiez que le backend est démarré.';
+        } else if (err.status === 400) {
+          // Message exact du backend (Email introuvable, Mot de passe incorrect, etc.)
+          this.errorMessage = err.error?.error || 'Email ou mot de passe incorrect.';
+        } else if (err.status === 403) {
+          this.errorMessage = 'Accès refusé. Contactez votre administrateur.';
+        } else if (err.status === 401) {
+          this.errorMessage = 'Session expirée. Veuillez vous reconnecter.';
+        } else {
+          this.errorMessage = 'Une erreur est survenue. Réessayez.';
+        }
       }
     });
   }

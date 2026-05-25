@@ -7,29 +7,27 @@ import { Observable } from 'rxjs';
 })
 export class ProfileService {
 
-  private apiUrl = 'http://localhost:8080/api/profile';
+  private apiUrl = 'http://localhost:8070/api';
 
   constructor(private http: HttpClient) {}
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
-    return new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    });
+    return new HttpHeaders({ Authorization: `Bearer ${token}` });
   }
 
   getProfile(): Observable<any> {
-    return this.http.get(this.apiUrl, { headers: this.getHeaders() });
+    return this.http.get(`${this.apiUrl}/users/me`, { headers: this.getHeaders() });
   }
 
   updateProfile(data: any): Observable<any> {
-    return this.http.put(this.apiUrl, data, { headers: this.getHeaders() });
+    return this.http.put(`${this.apiUrl}/users/me`, data, { headers: this.getHeaders() });
   }
 
-  changePassword(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/change-password`, data, {
-      headers: this.getHeaders()
-    });
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/users/me/change-password`,
+      { currentPassword, newPassword },
+      { headers: this.getHeaders() }
+    );
   }
 }

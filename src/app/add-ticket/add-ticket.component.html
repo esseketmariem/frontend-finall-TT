@@ -1,7 +1,6 @@
 <div class="add-ticket-wrapper">
   <div class="content">
 
-    <!-- ── BOUTON NOUVEAU TICKET (visible quand formulaire fermé) ── -->
     <div class="new-ticket-btn-wrap" *ngIf="!showForm">
       <button class="btn btn-primary" (click)="showForm = true; message = ''">
         + Nouveau Ticket
@@ -9,10 +8,8 @@
       <span class="success-banner" *ngIf="message">{{ message }}</span>
     </div>
 
-    <!-- ── FORMULAIRE ── -->
     <div class="form-card" *ngIf="showForm">
 
-      <!-- HEADER -->
       <div class="form-header">
         <div class="form-header-left">
           <span class="form-title">Créer un ticket d'incident</span>
@@ -27,7 +24,6 @@
         </span>
       </div>
 
-      <!-- BODY -->
       <div class="form-body">
 
         <div class="form-row">
@@ -60,9 +56,9 @@
                   [class.input-error]="hasError('priorite')"
                   [(ngModel)]="ticket.priorite">
             <option value="">-- Sélectionner --</option>
-            <option value="Basse">Basse</option>
-            <option value="Moyenne">Moyenne</option>
-            <option value="Haute">Haute</option>
+            <option value="BASSE">Basse</option>
+            <option value="MOYENNE">Moyenne</option>
+            <option value="HAUTE">Haute</option>
           </select>
           <span class="error-msg" *ngIf="hasError('priorite')">
             ⚠ {{ errors['priorite'] }}
@@ -86,7 +82,6 @@
 
       </div>
 
-      <!-- FEEDBACK -->
       <div class="feedback"
            *ngIf="message"
            [ngClass]="message.includes('❌') ? 'error' : 'success'">
@@ -94,7 +89,6 @@
         {{ message }}
       </div>
 
-      <!-- FOOTER -->
       <div class="form-footer">
         <span class="form-footer-info">
           <span class="required">*</span> Tous les champs sont obligatoires
@@ -108,9 +102,6 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       LISTE DES TICKETS CRÉÉS
-  ═══════════════════════════════════════════ -->
   <div class="ticket-list-section" *ngIf="showList">
 
     <div class="list-header">

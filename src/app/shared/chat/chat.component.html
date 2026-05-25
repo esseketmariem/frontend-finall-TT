@@ -1,0 +1,161 @@
+<div class="chat-wrapper">
+
+  <!-- Toast notification -->
+  <div class="chat-toast" *ngIf="toastVisible" (click)="toastVisible = false">
+    <span class="toast-icon">💬</span>
+    <span class="toast-text">{{ toastMessage }}</span>
+    <button class="toast-close">×</button>
+  </div>
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="chat-header-info">
+      <div class="chat-avatar-group">
+        <span class="chat-icon">💬</span>
+      </div>
+      <div>
+        <h3 class="chat-title">
+          Discussion Ticket #{{ ticketId }}
+          <span class="unread-badge" *ngIf="unreadCount > 0" (click)="markAsRead()">
+            {{ unreadCount }}
+          </span>
+        </h3>
+        <span class="chat-status" [ngClass]="'status-' + connectionStatus">
+          <span class="status-dot"></span>
+          {{ getStatusLabel() }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages Zone -->
+  <div class="chat-messages" #scrollContainer (scroll)="onScroll()">
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="chat-loading">
+      <div class="spinner"></div>
+      <span>Chargement des messages…</span>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!isLoading && messages.length === 0" class="chat-empty">
+      <div class="chat-empty-icon">💬</div>
+      <p>Aucun message pour ce ticket.</p>
+      <span>Soyez le premier à écrire !</span>
+    </div>
+
+    <!-- Message groups by date -->
+    <ng-container *ngFor="let group of messageGroups">
+
+      <div class="date-separator">
+        <span>{{ formatDate(group.date) }}</span>
+      </div>
+
+      <div
+        *ngFor="let msg of group.messages"
+        class="message-row"
+        [class.mine]="isMine(msg)"
+        [class.theirs]="!isMine(msg)"
+      >
+        <div *ngIf="!isMine(msg)" class="message-avatar">
+          <span>{{ getInitiales(msg) }}</span>
+        </div>
+
+        <div class="message-bubble-wrap">
+          <div *ngIf="!isMine(msg)" class="message-sender">
+            {{ msg.senderPrenom }} {{ msg.senderNom }}
+            <span class="sender-role">{{ msg.senderRole }}</span>
+          </div>
+
+          <div class="message-bubble" [class.pending]="isPending(msg)">
+            <button
+              *ngIf="isMine(msg) && !isPending(msg)"
+              class="delete-btn"
+              (click)="deleteMessage(msg)"
+              title="Supprimer"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6l-1 14H6L5 6"></path>
+                <path d="M10 11v6M14 11v6"></path>
+                <path d="M9 6V4h6v2"></path>
+              </svg>
+            </button>
+
+            <p class="message-content">{{ msg.content }}</p>
+            <div class="message-meta">
+              <span class="message-time">{{ formatTime(msg.sentAt) }}</span>
+              <span *ngIf="isMine(msg)" class="message-status">
+                <span *ngIf="isPending(msg)"  class="status-pending">⏳</span>
+                <span *ngIf="!isPending(msg)" class="status-sent">✓✓</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- Typing indicator -->
+    <div *ngIf="typingUsers.length > 0" class="typing-indicator">
+      <div class="typing-bubble">
+        <span class="typing-text">{{ getTypingText() }}</span>
+        <span class="typing-dots">
+          <span></span><span></span><span></span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Scroll to bottom button -->
+    <button
+      *ngIf="showScrollBtn"
+      class="scroll-btn"
+      (click)="scrollToBottom()"
+      title="Défiler vers le bas"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+      <span class="scroll-btn-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+    </button>
+
+  </div>
+
+  <!-- Input Zone -->
+  <div class="chat-input-zone">
+    <div class="chat-input-wrapper" [class.disabled]="connectionStatus !== 'connected'">
+      <textarea
+        #messageInput
+        [(ngModel)]="newMessage"
+        (keydown)="onKeydown($event)"
+        (input)="onInput()"
+        [placeholder]="connectionStatus === 'connected'
+          ? 'Écrire un message… (Entrée pour envoyer)'
+          : 'En attente de connexion…'"
+        [disabled]="connectionStatus !== 'connected'"
+        rows="1"
+        class="chat-textarea"
+      ></textarea>
+
+      <button
+        class="send-btn"
+        (click)="send()"
+        [disabled]="!newMessage.trim() || connectionStatus !== 'connected'"
+        title="Envoyer (Entrée)"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+
+    <div class="chat-input-hint">
+      <span>Shift + Entrée pour nouvelle ligne</span>
+    </div>
+  </div>
+
+</div>

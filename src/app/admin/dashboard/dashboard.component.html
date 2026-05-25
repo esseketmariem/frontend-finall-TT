@@ -1,12 +1,24 @@
-<div class="app-root">
+<div class="dashboard-root">
 
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="topbar-left">
-      <span class="brand">Ticket<span>Flow</span></span>
+      <div class="brand-wrap">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.6"/>
+          <line x1="9" y1="12" x2="15" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="9" y1="15" x2="13" y2="15" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span class="brand-name">Ticket<span class="brand-accent">Flow</span></span>
+      </div>
+      <div class="breadcrumb-sep"></div>
       <div class="breadcrumb">
-        <span>Admin</span><span>›</span>
-        <span class="cur">
+        <span class="bc-root">Admin</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="bc-current">
           {{ activeView === 'users'   ? 'Utilisateurs'
            : activeView === 'tickets' ? 'Tickets'
            : 'Statistiques' }}
@@ -14,10 +26,20 @@
       </div>
     </div>
     <div class="topbar-right">
-      <span class="dot-online"></span>
+      <div class="topbar-status">
+        <span class="dot-online"></span>
+        <span class="status-label">Connecté</span>
+      </div>
+      <div class="divider-v"></div>
       <div class="user-pill">
         <div class="user-avatar">AD</div>
-        Administrateur
+        <div class="user-info">
+          <span class="user-name">Administrateur</span>
+          <span class="user-role">Super Admin</span>
+        </div>
+        <svg class="chevron-icon" viewBox="0 0 12 12" fill="none">
+          <path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </div>
     </div>
   </header>
@@ -26,39 +48,61 @@
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-      <div class="sidebar-section">Navigation</div>
-
-      <div class="nav-item" [class.active]="activeView==='users'"
-           (click)="activeView='users'">
-        <svg class="nav-svg" viewBox="0 0 16 16" fill="none"
-             stroke="currentColor" stroke-width="1.8">
-          <circle cx="8" cy="5" r="3"/>
-          <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
-        </svg>
-        Utilisateurs
+      <div class="sidebar-logo-area">
+        <div class="sidebar-section-label">Navigation</div>
       </div>
 
-      <div class="nav-item" [class.active]="activeView==='tickets'"
-           (click)="activeView='tickets'; loadTickets()">
-        <svg class="nav-svg" viewBox="0 0 16 16" fill="none"
-             stroke="currentColor" stroke-width="1.8">
-          <rect x="2" y="2" width="12" height="12" rx="2"/>
-          <line x1="5" y1="5" x2="11" y2="5"/>
-          <line x1="5" y1="8" x2="9"  y2="8"/>
-        </svg>
-        Tickets
-        <span class="nav-badge">{{ totalTickets }}</span>
-      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-item" [class.active]="activeView==='users'"
+             (click)="activeView='users'">
+          <div class="nav-icon-wrap">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="8" cy="5" r="3"/>
+              <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+            </svg>
+          </div>
+          <span class="nav-label">Utilisateurs</span>
+          <span class="nav-indicator" *ngIf="activeView==='users'"></span>
+        </div>
 
-      <div class="nav-item" [class.active]="activeView==='stats'"
-           (click)="activeView='stats'; loadTickets()">
-        <svg class="nav-svg" viewBox="0 0 16 16" fill="none"
-             stroke="currentColor" stroke-width="1.8">
-          <polyline points="1,12 5,6 9,9 13,3 15,5"/>
-        </svg>
-        Statistiques
-      </div>
+        <div class="nav-item" [class.active]="activeView==='tickets'"
+             (click)="activeView='tickets'; loadTickets()">
+          <div class="nav-icon-wrap">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="2" y="2" width="12" height="12" rx="2"/>
+              <line x1="5" y1="5" x2="11" y2="5"/>
+              <line x1="5" y1="8" x2="9"  y2="8"/>
+            </svg>
+          </div>
+          <span class="nav-label">Tickets</span>
+          <span class="nav-badge" *ngIf="totalTickets > 0">{{ totalTickets }}</span>
+          <span class="nav-indicator" *ngIf="activeView==='tickets'"></span>
+        </div>
 
+        <div class="nav-item" [class.active]="activeView==='stats'"
+             (click)="activeView='stats'; loadTickets()">
+          <div class="nav-icon-wrap">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <polyline points="1,12 5,6 9,9 13,3 15,5"/>
+            </svg>
+          </div>
+          <span class="nav-label">Statistiques</span>
+          <span class="nav-indicator" *ngIf="activeView==='stats'"></span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="nav-item logout-item" (click)="logout()">
+          <div class="nav-icon-wrap">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M6 3H3a1 1 0 00-1 1v8a1 1 0 001 1h3"/>
+              <polyline points="10,5 13,8 10,11"/>
+              <line x1="13" y1="8" x2="5" y2="8"/>
+            </svg>
+          </div>
+          <span class="nav-label">Déconnexion</span>
+        </div>
+      </div>
     </aside>
 
     <main class="content">
@@ -66,9 +110,17 @@
       <!-- ── UTILISATEURS ── -->
       <ng-container *ngIf="activeView === 'users'">
         <div class="page-header">
-          <div>
-            <div class="page-title">Gestion des utilisateurs</div>
-            <div class="page-sub">Administrez les comptes et les rôles</div>
+          <div class="page-header-text">
+            <div class="page-title">
+              <span class="page-title-icon">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <circle cx="10" cy="7" r="4"/>
+                  <path d="M3 18c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
+                </svg>
+              </span>
+              Gestion des utilisateurs
+            </div>
+            <div class="page-sub">Administrez les comptes et les rôles de votre équipe</div>
           </div>
         </div>
         <app-admin-users></app-admin-users>
@@ -77,51 +129,169 @@
       <!-- ── TICKETS ── -->
       <ng-container *ngIf="activeView === 'tickets'">
         <div class="page-header">
-          <div>
-            <div class="page-title">Tous les tickets</div>
-            <div class="page-sub">Vue globale — tous statuts confondus</div>
+          <div class="page-header-text">
+            <div class="page-title">
+              <span class="page-title-icon">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <rect x="3" y="3" width="14" height="14" rx="2.5"/>
+                  <line x1="7" y1="7" x2="13" y2="7"/>
+                  <line x1="7" y1="10" x2="11" y2="10"/>
+                </svg>
+              </span>
+              Tous les tickets
+            </div>
+            <div class="page-sub">
+              {{ filteredTickets.length }} ticket{{ filteredTickets.length !== 1 ? 's' : '' }}
+              {{ activeFilter !== 'tous' ? '· filtrés' : 'au total' }}
+            </div>
           </div>
         </div>
 
-        <div class="stats-bar">
-          <div class="stat-card">
-            <div class="stat-label">Total</div>
-            <div class="stat-value">{{ totalTickets }}</div>
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-neutral">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+                <rect x="3" y="3" width="14" height="14" rx="2"/>
+                <line x1="7" y1="7" x2="13" y2="7"/>
+                <line x1="7" y1="10" x2="11" y2="10"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val">{{ totalTickets }}</div>
+              <div class="kpi-label">Total tickets</div>
+            </div>
+            <div class="kpi-trend kpi-trend-up">↑ actif</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">À faire</div>
-            <div class="stat-value" style="color:var(--todo)">{{ ticketsAfaire }}</div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-todo">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="10" cy="10" r="7"/>
+                <line x1="10" y1="6.5" x2="10" y2="10.5"/>
+                <circle cx="10" cy="13" r=".6" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val kpi-todo">{{ ticketsAfaire }}</div>
+              <div class="kpi-label">À faire</div>
+            </div>
+            <div class="kpi-bar">
+              <div class="kpi-bar-fill kpi-bar-todo"
+                   [style.width.%]="totalTickets ? (ticketsAfaire/totalTickets*100) : 0"></div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Approuvés</div>
-            <div class="stat-value" style="color:var(--done)">{{ ticketsApprouves }}</div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-done">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="10" cy="10" r="7"/>
+                <polyline points="7,10 9.5,12.5 13,8"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val kpi-done">{{ ticketsApprouves }}</div>
+              <div class="kpi-label">Approuvés</div>
+            </div>
+            <div class="kpi-bar">
+              <div class="kpi-bar-fill kpi-bar-done"
+                   [style.width.%]="totalTickets ? (ticketsApprouves/totalTickets*100) : 0"></div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Rejetés</div>
-            <div class="stat-value" style="color:var(--danger)">{{ ticketsRejetes }}</div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-danger">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="10" cy="10" r="7"/>
+                <line x1="7.5" y1="7.5" x2="12.5" y2="12.5"/>
+                <line x1="12.5" y1="7.5" x2="7.5" y2="12.5"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val kpi-danger">{{ ticketsRejetes }}</div>
+              <div class="kpi-label">Rejetés</div>
+            </div>
+            <div class="kpi-bar">
+              <div class="kpi-bar-fill kpi-bar-danger"
+                   [style.width.%]="totalTickets ? (ticketsRejetes/totalTickets*100) : 0"></div>
+            </div>
           </div>
         </div>
 
-        <div class="empty-state" *ngIf="isLoading">
-          <span class="empty-icon">↻</span>Chargement…
+        <div class="table-toolbar">
+          <div class="toolbar-left">
+            <div class="search-box">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="6.5" cy="6.5" r="4.5"/>
+                <line x1="10" y1="10" x2="14" y2="14"/>
+              </svg>
+              <input
+                type="text"
+                placeholder="Rechercher par titre, ID, priorité…"
+                [(ngModel)]="searchQuery"
+                class="search-input" />
+              <button *ngIf="searchQuery" class="search-clear" (click)="searchQuery=''">✕</button>
+            </div>
+          </div>
+          <div class="toolbar-right">
+            <div class="filter-chip" [class.active]="activeFilter==='tous'" (click)="setFilter('tous')">
+              Tous <span class="chip-count">{{ totalTickets }}</span>
+            </div>
+            <div class="filter-chip" [class.active]="activeFilter==='A_faire'" (click)="setFilter('A_faire')">
+              À faire <span class="chip-count">{{ ticketsAfaire }}</span>
+            </div>
+            <div class="filter-chip" [class.active]="activeFilter==='Approuvé'" (click)="setFilter('Approuvé')">
+              Approuvés <span class="chip-count">{{ ticketsApprouves }}</span>
+            </div>
+            <div class="filter-chip" [class.active]="activeFilter==='Rejeté'" (click)="setFilter('Rejeté')">
+              Rejetés <span class="chip-count">{{ ticketsRejetes }}</span>
+            </div>
+          </div>
         </div>
-        <div class="empty-state" *ngIf="!isLoading && errorMessage">
-          <span class="empty-icon">⚠</span>{{ errorMessage }}
+
+        <div class="loading-state" *ngIf="isLoading">
+          <div class="spinner"></div>
+          <span>Chargement des tickets…</span>
+        </div>
+
+        <div class="error-state" *ngIf="!isLoading && errorMessage">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="9"/>
+            <line x1="12" y1="8" x2="12" y2="12.5"/>
+            <circle cx="12" cy="16" r=".7" fill="currentColor"/>
+          </svg>
+          {{ errorMessage }}
         </div>
 
         <div class="table-wrap" *ngIf="!isLoading && !errorMessage">
-          <div class="empty-state" *ngIf="tickets.length === 0">
-            <span class="empty-icon">◈</span>Aucun ticket.
+          <div class="empty-state" *ngIf="filteredTickets.length === 0">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2" class="empty-icon-svg">
+              <rect x="8" y="8" width="32" height="32" rx="4"/>
+              <line x1="16" y1="18" x2="32" y2="18"/>
+              <line x1="16" y1="24" x2="26" y2="24"/>
+              <line x1="16" y1="30" x2="22" y2="30"/>
+            </svg>
+            <div class="empty-title">Aucun ticket trouvé</div>
+            <div class="empty-sub">
+              {{ searchQuery ? 'Aucun résultat pour « ' + searchQuery + ' »' : 'Les tickets apparaîtront ici une fois créés' }}
+            </div>
+            <button *ngIf="searchQuery || activeFilter !== 'tous'"
+                    class="btn-reset-filter"
+                    (click)="searchQuery=''; activeFilter='tous'">
+              Réinitialiser les filtres
+            </button>
           </div>
-          <table *ngIf="tickets.length > 0">
+
+          <table *ngIf="filteredTickets.length > 0">
             <thead>
               <tr>
-                <th>ID</th><th>Titre</th><th>Priorité</th>
-                <th>Statut</th><th>Créé le</th><th>Souhaité</th><th>Màj</th>
+                <th class="th-id">ID</th>
+                <th>Titre</th>
+                <th>Priorité</th>
+                <th>Statut</th>
+                <th>Créé le</th>
+                <th>Souhaité</th>
+                <th>Màj</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let t of tickets">
+              <tr *ngFor="let t of filteredTickets" class="tr-row">
                 <td><span class="ticket-id">#{{ t.id }}</span></td>
                 <td class="td-titre">{{ t.titre }}</td>
                 <td>
@@ -148,51 +318,107 @@
       <!-- ── STATISTIQUES ── -->
       <ng-container *ngIf="activeView === 'stats'">
         <div class="page-header">
-          <div>
-            <div class="page-title">Statistiques</div>
-            <div class="page-sub">Vue d'ensemble de l'activité tickets</div>
+          <div class="page-header-text">
+            <div class="page-title">
+              <span class="page-title-icon">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <polyline points="2,15 6,8 10,11 14,4 18,6"/>
+                </svg>
+              </span>
+              Statistiques
+            </div>
+            <div class="page-sub">Vue d'ensemble de l'activité tickets en temps réel</div>
           </div>
         </div>
 
-        <div class="stats-bar">
-          <div class="stat-card kpi">
-            <div class="stat-label">Total</div>
-            <div class="stat-value kpi-val">{{ totalTickets }}</div>
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-neutral">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+                <rect x="3" y="3" width="14" height="14" rx="2"/>
+                <line x1="7" y1="7" x2="13" y2="7"/>
+                <line x1="7" y1="10" x2="11" y2="10"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val">{{ totalTickets }}</div>
+              <div class="kpi-label">Total</div>
+            </div>
           </div>
-          <div class="stat-card kpi">
-            <div class="stat-label">À faire</div>
-            <div class="stat-value kpi-val" style="color:var(--todo)">{{ ticketsAfaire }}</div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-todo">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="10" cy="10" r="7"/>
+                <line x1="10" y1="6.5" x2="10" y2="10.5"/>
+                <circle cx="10" cy="13" r=".6" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val kpi-todo">{{ ticketsAfaire }}</div>
+              <div class="kpi-label">À faire</div>
+            </div>
           </div>
-          <div class="stat-card kpi">
-            <div class="stat-label">Approuvés</div>
-            <div class="stat-value kpi-val" style="color:var(--done)">{{ ticketsApprouves }}</div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-done">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="10" cy="10" r="7"/>
+                <polyline points="7,10 9.5,12.5 13,8"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val kpi-done">{{ ticketsApprouves }}</div>
+              <div class="kpi-label">Approuvés</div>
+            </div>
           </div>
-          <div class="stat-card kpi">
-            <div class="stat-label">Rejetés</div>
-            <div class="stat-value kpi-val" style="color:var(--danger)">{{ ticketsRejetes }}</div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-danger">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="10" cy="10" r="7"/>
+                <line x1="7.5" y1="7.5" x2="12.5" y2="12.5"/>
+                <line x1="12.5" y1="7.5" x2="7.5" y2="12.5"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val kpi-danger">{{ ticketsRejetes }}</div>
+              <div class="kpi-label">Rejetés</div>
+            </div>
           </div>
-          <div class="stat-card kpi">
-            <div class="stat-label">Haute priorité</div>
-            <div class="stat-value kpi-val" style="color:#e05555">{{ ticketsHaute }}</div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-high">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
+                <path d="M10 3L12.5 8.5H18L13.5 12L15.5 17.5L10 14L4.5 17.5L6.5 12L2 8.5H7.5Z"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val kpi-danger">{{ ticketsHaute }}</div>
+              <div class="kpi-label">Haute priorité</div>
+            </div>
           </div>
         </div>
 
         <div class="charts-grid">
-
           <div class="chart-card chart-wide">
-            <div class="chart-title">Tickets créés — 7 derniers jours</div>
+            <div class="chart-header">
+              <div class="chart-title">Tickets créés — 7 derniers jours</div>
+              <div class="chart-badge">Activité récente</div>
+            </div>
             <svg viewBox="0 0 560 140" preserveAspectRatio="none" class="chart-svg">
-              <line x1="20" y1="20"  x2="540" y2="20"  stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-              <line x1="20" y1="50"  x2="540" y2="50"  stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-              <line x1="20" y1="80"  x2="540" y2="80"  stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-              <line x1="20" y1="110" x2="540" y2="110" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-              <path [attr.d]="lineChart.area" fill="rgba(74,144,217,0.12)" stroke="none"/>
-              <path [attr.d]="lineChart.path" fill="none" stroke="#4a90d9" stroke-width="2"
+              <defs>
+                <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#1e3a8a" stop-opacity="0.15"/>
+                  <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <line x1="20" y1="20"  x2="540" y2="20"  stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
+              <line x1="20" y1="50"  x2="540" y2="50"  stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
+              <line x1="20" y1="80"  x2="540" y2="80"  stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
+              <line x1="20" y1="110" x2="540" y2="110" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
+              <path [attr.d]="lineChart.area" fill="url(#lineGrad)" stroke="none"/>
+              <path [attr.d]="lineChart.path" fill="none" stroke="#1e3a8a" stroke-width="2.5"
                     stroke-linejoin="round" stroke-linecap="round"/>
               <circle *ngFor="let dot of lineChart.dots"
                       [attr.cx]="dot.x" [attr.cy]="dot.y"
-                      r="4" fill="#4a90d9"
-                      stroke="rgba(10,10,10,0.8)" stroke-width="2"/>
+                      r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
             </svg>
             <div class="chart-labels">
               <span *ngFor="let d of getLast7Days()">{{ d }}</span>
@@ -200,79 +426,83 @@
           </div>
 
           <div class="chart-card">
-            <div class="chart-title">Répartition par statut</div>
+            <div class="chart-header">
+              <div class="chart-title">Répartition par statut</div>
+            </div>
             <div class="donut-wrap">
-              <svg viewBox="0 0 160 160" class="donut-svg">
-                <g *ngFor="let seg of getDonutPath(statutChartData)">
-                  <path [attr.d]="seg.d" [attr.fill]="seg.color" opacity="0.9"/>
-                </g>
-                <text x="80" y="76" text-anchor="middle"
-                      fill="#f0f0f0" font-size="20" font-weight="600">
-                  {{ totalTickets }}
-                </text>
-                <text x="80" y="92" text-anchor="middle" fill="#606060" font-size="9">
-                  tickets
-                </text>
-              </svg>
+              <div class="donut-container">
+                <svg viewBox="0 0 160 160" class="donut-svg">
+                  <g *ngFor="let seg of getDonutPath(statutChartData)">
+                    <path [attr.d]="seg.d" [attr.fill]="seg.color" opacity="0.9"/>
+                  </g>
+                  <circle cx="80" cy="80" r="28" fill="#ffffff"/>
+                  <text x="80" y="76" text-anchor="middle" fill="#1a1d2e" font-size="20" font-weight="600" font-family="'DM Sans',sans-serif">{{ totalTickets }}</text>
+                  <text x="80" y="91" text-anchor="middle" fill="#9298b5" font-size="9" font-family="'DM Sans',sans-serif">tickets</text>
+                </svg>
+              </div>
               <div class="donut-legend">
                 <div class="legend-item" *ngFor="let seg of getDonutPath(statutChartData)">
                   <span class="legend-dot" [style.background]="seg.color"></span>
-                  {{ seg.label }} — {{ seg.pct }}%
+                  <span class="legend-label">{{ seg.label }}</span>
+                  <span class="legend-pct" [style.color]="seg.color">{{ seg.pct }}%</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="chart-card">
-            <div class="chart-title">Répartition par priorité</div>
+            <div class="chart-header">
+              <div class="chart-title">Répartition par priorité</div>
+            </div>
             <div class="donut-wrap">
-              <svg viewBox="0 0 160 160" class="donut-svg">
-                <g *ngFor="let seg of getDonutPath(prioriteChartData)">
-                  <path [attr.d]="seg.d" [attr.fill]="seg.color" opacity="0.9"/>
-                </g>
-                <text x="80" y="76" text-anchor="middle"
-                      fill="#f0f0f0" font-size="20" font-weight="600">
-                  {{ totalTickets }}
-                </text>
-                <text x="80" y="92" text-anchor="middle" fill="#606060" font-size="9">
-                  tickets
-                </text>
-              </svg>
+              <div class="donut-container">
+                <svg viewBox="0 0 160 160" class="donut-svg">
+                  <g *ngFor="let seg of getDonutPath(prioriteChartData)">
+                    <path [attr.d]="seg.d" [attr.fill]="seg.color" opacity="0.9"/>
+                  </g>
+                  <circle cx="80" cy="80" r="28" fill="#ffffff"/>
+                  <text x="80" y="76" text-anchor="middle" fill="#1a1d2e" font-size="20" font-weight="600" font-family="'DM Sans',sans-serif">{{ totalTickets }}</text>
+                  <text x="80" y="91" text-anchor="middle" fill="#9298b5" font-size="9" font-family="'DM Sans',sans-serif">tickets</text>
+                </svg>
+              </div>
               <div class="donut-legend">
                 <div class="legend-item" *ngFor="let seg of getDonutPath(prioriteChartData)">
                   <span class="legend-dot" [style.background]="seg.color"></span>
-                  {{ seg.label }} — {{ seg.pct }}%
+                  <span class="legend-label">{{ seg.label }}</span>
+                  <span class="legend-pct" [style.color]="seg.color">{{ seg.pct }}%</span>
                 </div>
               </div>
             </div>
           </div>
 
           <div class="chart-card chart-wide">
-            <div class="chart-title">Progression par statut et priorité</div>
+            <div class="chart-header">
+              <div class="chart-title">Progression par statut et priorité</div>
+            </div>
             <div class="bar-rows">
               <div class="bar-row" *ngFor="let item of statutChartData">
                 <span class="bar-label">{{ item.label }}</span>
                 <div class="bar-track">
                   <div class="bar-fill"
                        [style.width.%]="totalTickets ? (item.value/totalTickets*100) : 0"
-                       [style.background]="item.color">
-                  </div>
+                       [style.background]="item.color"></div>
                 </div>
+                <span class="bar-pct">{{ totalTickets ? (item.value/totalTickets*100 | number:'1.0-0') : 0 }}%</span>
                 <span class="bar-count" [style.color]="item.color">{{ item.value }}</span>
               </div>
+              <div class="bar-divider"></div>
               <div class="bar-row" *ngFor="let item of prioriteChartData">
                 <span class="bar-label">Priorité {{ item.label }}</span>
                 <div class="bar-track">
                   <div class="bar-fill"
                        [style.width.%]="totalTickets ? (item.value/totalTickets*100) : 0"
-                       [style.background]="item.color">
-                  </div>
+                       [style.background]="item.color"></div>
                 </div>
+                <span class="bar-pct">{{ totalTickets ? (item.value/totalTickets*100 | number:'1.0-0') : 0 }}%</span>
                 <span class="bar-count" [style.color]="item.color">{{ item.value }}</span>
               </div>
             </div>
           </div>
-
         </div>
       </ng-container>
 

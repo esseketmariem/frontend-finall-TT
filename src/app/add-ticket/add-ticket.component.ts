@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { TicketService } from '../services/ticket.service';
@@ -12,6 +12,9 @@ import { Ticket } from '../models/ticket';
   styleUrls: ['./add-ticket.component.css']
 })
 export class AddTicketComponent {
+
+  @Output() ticketCreated = new EventEmitter<void>();
+
   today = new Date();
 
   get minDate(): string {
@@ -23,8 +26,8 @@ export class AddTicketComponent {
   ticket: Ticket = {
     titre:        '',
     description:  '',
-    statut:       'A_faire',
-    priorite:     'Moyenne',
+    statut:       'A_FAIRE',
+    priorite:     'MOYENNE',
     dateSouhaite: this.minDate
   };
 
@@ -66,12 +69,21 @@ export class AddTicketComponent {
       return;
     }
 
+    const stored = localStorage.getItem('currentUser');
+    const currentUser = stored ? JSON.parse(stored) : null;
+
+    if (!currentUser?.id) {
+      this.message = '❌ Utilisateur non identifié. Veuillez vous reconnecter.';
+      return;
+    }
+
     const payload: Partial<Ticket> = {
       titre:        this.ticket.titre.trim(),
       description:  this.ticket.description!.trim(),
-      statut:       'A_faire',
+      statut:       'A_FAIRE',
       priorite:     this.ticket.priorite,
-      dateSouhaite: this.ticket.dateSouhaite
+      dateSouhaite: this.ticket.dateSouhaite,
+      userId:       currentUser.id
     };
 
     this.ticketService.createTicket(payload).subscribe({
@@ -80,7 +92,7 @@ export class AddTicketComponent {
           ...payload,
           id:           created?.id,
           dateCreation: created?.dateCreation ?? new Date().toISOString(),
-          statut:       'A_faire',
+          statut:       'A_FAIRE',
           titre:        payload.titre!,
           description:  payload.description!,
           priorite:     payload.priorite!,
@@ -92,6 +104,7 @@ export class AddTicketComponent {
         this.message  = '✅ Ticket créé avec succès.';
         this.errors   = {};
         this.resetForm();
+        this.ticketCreated.emit();
       },
       error: (err) => {
         this.message = '❌ Erreur : ' + (err.error?.message || 'Erreur serveur.');
@@ -103,8 +116,8 @@ export class AddTicketComponent {
     this.ticket = {
       titre:        '',
       description:  '',
-      statut:       'A_faire',
-      priorite:     'Moyenne',
+      statut:       'A_FAIRE',
+      priorite:     'MOYENNE',
       dateSouhaite: this.minDate
     };
     this.errors = {};

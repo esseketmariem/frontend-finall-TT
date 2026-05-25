@@ -1,177 +1,586 @@
-<div class="ba-dashboard">
+<div class="dashboard-root">
 
-  <!-- ── Header ──────────────────────────────────── -->
-  <header class="ba-header">
-    <div class="ba-header__left">
-      <span class="ba-header__icon">🧠</span>
-      <div>
-        <h1 class="ba-header__title">Analyse des Tickets</h1>
-        <p class="ba-header__sub">Business Analyst — Tickets acceptés en attente d'analyse IA</p>
-      </div>
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/>
+      </svg>
+      <span>TicketFlow</span>
     </div>
-    <div class="ba-header__stats">
-      <div class="stat-pill">
-        <span class="stat-pill__num">{{ tickets.length }}</span>
-        <span class="stat-pill__lbl">Tickets</span>
-      </div>
-      <div class="stat-pill stat-pill--done">
-        <span class="stat-pill__num">{{ tickets | analyseCount }}</span>
-        <span class="stat-pill__lbl">Analysés</span>
-      </div>
-    </div>
-  </header>
 
-  <!-- ── Error ────────────────────────────────────── -->
-  <div class="ba-error" *ngIf="errorMessage">
-    <span>⚠️ {{ errorMessage }}</span>
-    <button (click)="loadAcceptedTickets()">Réessayer</button>
-  </div>
+    <div class="sidebar-section-label">Navigation</div>
 
-  <!-- ── Loading ──────────────────────────────────── -->
-  <div class="ba-loading" *ngIf="isLoading">
-    <div class="ba-spinner"></div>
-    <span>Chargement des tickets…</span>
-  </div>
-
-  <!-- ── Empty ────────────────────────────────────── -->
-  <div class="ba-empty" *ngIf="!isLoading && tickets.length === 0 && !errorMessage">
-    <div class="ba-empty__icon">📋</div>
-    <p>Aucun ticket accepté pour le moment.</p>
-  </div>
-
-  <!-- ── Ticket Grid ──────────────────────────────── -->
-  <div class="ticket-grid" *ngIf="!isLoading && tickets.length > 0">
-    <div
-      class="ticket-card"
-      *ngFor="let ticket of tickets"
-      [class.ticket-card--analysed]="ticket.analyseIAEffectuee"
-    >
-      <!-- Badge IA -->
-      <span class="ia-badge" *ngIf="ticket.analyseIAEffectuee">
-        ✅ Analysé par IA
-      </span>
-      <span class="ia-badge ia-badge--pending" *ngIf="!ticket.analyseIAEffectuee">
-        ⏳ En attente d'analyse
-      </span>
-
-      <!-- En-tête carte -->
-      <div class="ticket-card__head">
-        <span class="ticket-card__id">#{{ ticket.id }}</span>
-        <span class="ticket-card__prio" [ngClass]="getPrioriteClass(ticket.priorite)">
-          {{ getPrioriteLabel(ticket.priorite) }}
-        </span>
-      </div>
-
-      <h3 class="ticket-card__title">{{ ticket.titre }}</h3>
-      <p class="ticket-card__desc">{{ ticket.description | slice:0:120 }}{{ ticket.description && ticket.description.length > 120 ? '…' : '' }}</p>
-
-      <!-- Systèmes détectés -->
-      <div class="ticket-card__tags" *ngIf="ticket.systemesDetectes?.length">
-        <span class="sys-tag" *ngFor="let sys of ticket.systemesDetectes">{{ sys }}</span>
-      </div>
-
-      <!-- Résumé IA -->
-      <div class="ticket-card__summary" *ngIf="ticket.aiSummary">
-        <span class="summary-label">🤖 Résumé IA</span>
-        <p>{{ ticket.aiSummary | slice:0:150 }}…</p>
-      </div>
-
-      <!-- Méta -->
-      <div class="ticket-card__meta">
-        <span>📅 {{ ticket.dateCreation | date:'dd/MM/yyyy' }}</span>
-        <span *ngIf="ticket.nombreSousTickets">
-          🔀 {{ ticket.nombreSousTickets }} sous-ticket(s)
-        </span>
-      </div>
-
-      <!-- Progression -->
-      <div class="ticket-card__progress" *ngIf="ticket.analyseIAEffectuee">
-        <div class="progress-bar">
-          <div class="progress-bar__fill" [style.width.%]="getProgress(ticket)"></div>
+    <nav class="sidebar-nav">
+      <div class="nav-item" [class.active]="activeView === 'tickets'" (click)="setView('tickets')">
+        <div class="nav-icon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="2" y="2" width="12" height="12" rx="2"/>
+            <line x1="5" y1="5" x2="11" y2="5"/>
+            <line x1="5" y1="8" x2="11" y2="8"/>
+            <line x1="5" y1="11" x2="9" y2="11"/>
+          </svg>
         </div>
-        <span class="progress-pct">{{ getProgress(ticket) }}%</span>
+        <span class="nav-label">Tickets</span>
+        <span class="nav-count">{{ pendingTickets.length }}</span>
       </div>
 
-      <!-- Actions -->
-      <div class="ticket-card__actions">
-        <button
-          class="btn btn--analyse"
-          *ngIf="!ticket.analyseIAEffectuee"
-          [disabled]="analyzingId === ticket.id"
-          (click)="lancerAnalyse(ticket)"
-        >
-          <span *ngIf="analyzingId !== ticket.id">🚀 Lancer l'analyse IA</span>
-          <span *ngIf="analyzingId === ticket.id" class="btn-spinner">
-            <span class="dot-spin"></span> Analyse en cours…
-          </span>
-        </button>
+      <div class="nav-item" [class.active]="activeView === 'analyses'" (click)="setView('analyses')">
+        <div class="nav-icon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="8" cy="8" r="6"/>
+            <path d="M8 5v3l2 2"/>
+          </svg>
+        </div>
+        <span class="nav-label">Analyses</span>
+        <span class="nav-count nav-count--done">{{ analysedTickets.length }}</span>
+      </div>
+    </nav>
 
-        <button
-          class="btn btn--voir"
-          *ngIf="ticket.analyseIAEffectuee"
-          (click)="voirAnalyse(ticket)"
-        >
-          🔍 Voir l'analyse
-        </button>
-
-        <button
-          class="btn btn--rerun"
-          *ngIf="ticket.analyseIAEffectuee"
-          [disabled]="analyzingId === ticket.id"
-          (click)="lancerAnalyse(ticket)"
-        >
-          🔄 Re-analyser
-        </button>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" (click)="toggleUserMenu($event)">
+        <div class="sidebar-avatar">{{ getInitials() }}</div>
+        <div class="sidebar-user-info">
+          <span class="sidebar-user-name">{{ prenom }} {{ nom }}</span>
+          <span class="sidebar-user-role">Business Analyst</span>
+        </div>
+        <svg class="sidebar-chevron" [class.open]="userMenuOpen"
+             viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="4 6 8 10 12 6"/>
+        </svg>
       </div>
 
-      <!-- ── Sous-tickets & Génération tâches ── -->
-      <div class="ticket-card__sous" *ngIf="ticket.analyseIAEffectuee">
-        <button class="btn btn--sous" (click)="voirSousTickets(ticket)">
-          {{ expandedTicketId === ticket.id ? '▲ Masquer les sous-tickets' : '▼ Voir sous-tickets & générer tâches' }}
-        </button>
-
-        <div class="sous-tickets-panel" *ngIf="expandedTicketId === ticket.id">
-
-          <div *ngIf="!sousTicketsMap[ticket.id!]" class="ba-loading">
-            <div class="ba-spinner"></div>
-            <span>Chargement des sous-tickets…</span>
+      @if (userMenuOpen) {
+        <div class="user-dropdown" (click)="$event.stopPropagation()">
+          <div class="user-dropdown__item" (click)="goToProfile()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+              <path d="M14 14a6 6 0 0 0-12 0"/>
+            </svg>
+            Mon Profil
           </div>
+          <div class="user-dropdown__divider"></div>
+          <div class="user-dropdown__item user-dropdown__item--danger" (click)="logout()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>
+              <polyline points="10 11 14 8 10 5"/>
+              <line x1="14" y1="8" x2="6" y2="8"/>
+            </svg>
+            Déconnexion
+          </div>
+        </div>
+      }
+    </div>
+  </aside>
 
-          <div *ngFor="let st of sousTicketsMap[ticket.id!]" class="sous-ticket-item">
-            <div class="sous-ticket-item__head">
-              <span class="sous-ticket-item__titre">🔀 {{ st.titre }}</span>
-              <span class="sous-ticket-item__equipe">👥 {{ st.equipeResponsable }}</span>
-            </div>
+  <!-- ── MAIN ── -->
+  <div class="main" [class.main--shifted]="chatPanelOpen">
 
-            <button class="btn btn--generer"
-                    [disabled]="generatingTachesId === st.id"
-                    (click)="genererTaches(st.id)">
-              <span *ngIf="generatingTachesId !== st.id">🤖 Générer les tâches IA</span>
-              <span *ngIf="generatingTachesId === st.id" class="btn-spinner">
-                <span class="dot-spin"></span> Génération…
-              </span>
-            </button>
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">
+          @if (activeView === 'tickets') {
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="2" y="2" width="12" height="12" rx="2"/>
+              <line x1="5" y1="5" x2="11" y2="5"/>
+              <line x1="5" y1="8" x2="11" y2="8"/>
+              <line x1="5" y1="11" x2="9" y2="11"/>
+            </svg>
+            <span>Tickets en attente</span>
+          } @else {
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="8" cy="8" r="6"/>
+              <path d="M8 5v3l2 2"/>
+            </svg>
+            <span>Tickets analysés</span>
+          }
+        </div>
+        <span class="topbar-sub">
+          @if (activeView === 'tickets') {
+            {{ pendingTickets.length }} ticket(s) en attente d'analyse
+          } @else {
+            {{ analysedTickets.length }} ticket(s) analysé(s)
+          }
+        </span>
+      </div>
 
-            <!-- Tâches générées -->
-            <div class="taches-list" *ngIf="tachesMap[st.id]">
-              <div class="tache-item" *ngFor="let t of tachesMap[st.id]">
-                <span class="tache-item__titre">{{ t.titre }}</span>
-                <span class="tache-item__prio" [ngClass]="getPrioriteClass(t.priorite)">
-                  {{ t.priorite }}
+      <div class="topbar-right">
+        <app-notification-bell (openChat)="openChatFromNotif($event)"></app-notification-bell>
+        <button class="chat-trigger-btn" (click)="chatPanelOpen = true" title="Ouvrir le chat Métier">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M14 10a2 2 0 0 1-2 2H5l-3 3V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6z"/>
+          </svg>
+          <span class="chat-trigger-label">Chat Métier</span>
+          <span class="topbar-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+        </button>
+
+        <div class="kpi-pill">
+          <span class="kpi-pill__num">{{ tickets.length }}</span>
+          <span class="kpi-pill__lbl">Total</span>
+        </div>
+        <div class="kpi-pill kpi-pill--done">
+          <span class="kpi-pill__num">{{ analysedTickets.length }}</span>
+          <span class="kpi-pill__lbl">Analysés</span>
+        </div>
+        <div class="kpi-pill kpi-pill--pending">
+          <span class="kpi-pill__num">{{ pendingTickets.length }}</span>
+          <span class="kpi-pill__lbl">En attente</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content">
+
+      @if (errorMessage) {
+        <div class="alert-error">
+          <span>⚠ {{ errorMessage }}</span>
+          <button (click)="errorMessage = ''">✕</button>
+        </div>
+      }
+
+      @if (isLoading) {
+        <div class="state-loading">
+          <div class="spinner"></div>
+          <span>Chargement des tickets...</span>
+        </div>
+      }
+
+      @if (!isLoading && displayedTickets.length === 0 && !errorMessage) {
+        <div class="state-empty">
+          <div class="state-empty__icon">
+            {{ activeView === 'tickets' ? '📭' : '🔬' }}
+          </div>
+          <p class="state-empty__title">
+            {{ activeView === 'tickets' ? 'Aucun ticket en attente' : 'Aucun ticket analysé' }}
+          </p>
+          <p class="state-empty__sub">
+            {{ activeView === 'tickets'
+              ? 'Tous les tickets ont été analysés'
+              : 'Lancez une analyse IA sur les tickets en attente' }}
+          </p>
+        </div>
+      }
+
+      @if (!isLoading && displayedTickets.length > 0) {
+        <div class="ticket-grid">
+          @for (ticket of displayedTickets; track ticket.id) {
+            <div class="ticket-card" [class.ticket-card--analysed]="ticket.analyseIAEffectuee">
+
+              <!-- ── TOP ROW ── -->
+              <div class="ticket-card__top">
+                <span class="ticket-id">#{{ ticket.id }}</span>
+
+                <span class="statut-badge"
+                      [class.statut-badge--en-cours]="ticket.statut === 'EN_COURS'"
+                      [class.statut-badge--in-analysis]="ticket.statut === 'IN_ANALYSIS'"
+                      [class.statut-badge--analyzed]="ticket.statut === 'ANALYZED'"
+                      [class.statut-badge--approuve]="ticket.statut === 'APPROUVE'"
+                      [class.statut-badge--rejete]="ticket.statut === 'REJETE'">
+                  @if (ticket.statut === 'EN_COURS')    { 🔵 En cours }
+                  @if (ticket.statut === 'IN_ANALYSIS') { 🟠 En analyse }
+                  @if (ticket.statut === 'ANALYZED')    { 🟢 Analysé }
+                  @if (ticket.statut === 'APPROUVE')    { ✅ Approuvé }
+                  @if (ticket.statut === 'REJETE')      { ❌ Rejeté }
                 </span>
-                <span class="tache-item__assignee" *ngIf="t.assigneeNom">
-                  👤 {{ t.assigneePrenom }} {{ t.assigneeNom }}
+
+                <span class="prio-badge" [ngClass]="getPrioriteClass(ticket.priorite)">
+                  {{ getPrioriteLabel(ticket.priorite) }}
                 </span>
-                <span class="tache-item__assignee" *ngIf="!t.assigneeNom">
-                  👤 Non assigné
-                </span>
+
+                <button class="btn-chat-quick"
+                        title="Discuter sur ce ticket"
+                        (click)="openChat(ticket.id!, $event)">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M14 10a2 2 0 0 1-2 2H5l-3 3V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6z"/>
+                  </svg>
+                </button>
               </div>
-            </div>
 
-          </div>
+              <!-- ── TITRE & DESC ── -->
+              <h3 class="ticket-card__title">{{ ticket.titre }}</h3>
+
+              @if (ticket.description) {
+                <p class="ticket-card__desc">{{ ticket.description }}</p>
+              }
+
+              <!-- ── RÉSUMÉ IA ── -->
+              @if (ticket.analyseIAEffectuee && ticket.aiSummary) {
+                <div class="ticket-card__summary">
+                  <span class="summary-label">🤖 Résumé IA</span>
+                  <p>{{ ticket.aiSummary }}</p>
+                </div>
+              }
+
+              <!-- ── META ── -->
+              <div class="ticket-card__meta">
+                <span>📅 {{ ticket.dateCreation | date:'dd/MM/yyyy' }}</span>
+              </div>
+
+              <!-- ══════════════════════════════════════
+                   ACTIONS
+              ══════════════════════════════════════ -->
+              <div class="ticket-card__actions">
+
+                @if (ticket.analyseIAEffectuee) {
+                  <button class="btn btn--voir"
+                          (click)="voirAnalyse(ticket, $event)">
+                    🔍 Voir l'analyse
+                  </button>
+                  <button class="btn btn--rerun"
+                          [disabled]="analyzingId === ticket.id"
+                          (click)="lancerAnalyse(ticket, $event)"
+                          title="Relancer l'analyse IA">
+                    @if (analyzingId === ticket.id) {
+                      <span class="dot-spin"></span>
+                    } @else {
+                      🔄
+                    }
+                  </button>
+                }
+
+                @if (!ticket.analyseIAEffectuee && ticket.statut === 'EN_COURS') {
+                  <button class="btn btn--start-analysis"
+                          [disabled]="startingAnalysisId === ticket.id"
+                          (click)="demarrerAnalyse(ticket, $event)">
+                    @if (startingAnalysisId === ticket.id) {
+                      <span class="dot-spin"></span> Démarrage...
+                    } @else {
+                      ▶ Démarrer l'analyse
+                    }
+                  </button>
+                }
+
+                @if (!ticket.analyseIAEffectuee && ticket.statut === 'IN_ANALYSIS') {
+                  <button class="btn btn--analyse"
+                          [disabled]="analyzingId === ticket.id"
+                          (click)="lancerAnalyse(ticket, $event)">
+                    @if (analyzingId === ticket.id) {
+                      <span class="dot-spin"></span> Analyse en cours...
+                    } @else {
+                      🚀 Lancer l'analyse IA
+                    }
+                  </button>
+                  <button class="btn btn--complete-analysis"
+                          [disabled]="completingAnalysisId === ticket.id"
+                          (click)="terminerAnalyse(ticket, $event)">
+                    @if (completingAnalysisId === ticket.id) {
+                      <span class="dot-spin"></span>
+                    } @else {
+                      ✔ Terminer
+                    }
+                  </button>
+                }
+
+                @if (!ticket.analyseIAEffectuee && ticket.statut === 'ANALYZED') {
+                  <button class="btn btn--analyse"
+                          [disabled]="analyzingId === ticket.id"
+                          (click)="lancerAnalyse(ticket, $event)">
+                    @if (analyzingId === ticket.id) {
+                      <span class="dot-spin"></span> Analyse en cours...
+                    } @else {
+                      🚀 Lancer l'analyse IA
+                    }
+                  </button>
+                }
+
+              </div>
+
+              <!-- ── SOUS-TICKETS ── -->
+              @if (ticket.analyseIAEffectuee || ticket.statut === 'ANALYZED' || ticket.statut === 'APPROUVE' || ticket.statut === 'REJETE') {
+                <div class="ticket-card__sous">
+                  <button class="btn--sous" (click)="voirSousTickets(ticket, $event)">
+                    {{ expandedTicketId === ticket.id ? '▲ Masquer' : '▼ Voir les sous-tickets' }}
+                  </button>
+
+                  @if (isLoadingSousTickets(ticket.id!)) {
+                    <div class="state-loading state-loading--sm">
+                      <div class="spinner spinner--sm"></div>
+                      <span>Chargement...</span>
+                    </div>
+                  }
+
+                  @if (expandedTicketId === ticket.id && !isLoadingSousTickets(ticket.id!) && sousTicketsMap[ticket.id!]) {
+                    <div class="sous-tickets-panel">
+                      @if (sousTicketsMap[ticket.id!].length === 0) {
+                        <p class="sous-empty">Aucun sous-ticket trouvé.</p>
+                      }
+                      @for (st of sousTicketsMap[ticket.id!]; track st.id) {
+                        <div class="sous-ticket-item">
+                          <div class="sous-ticket-item__head">
+
+                            <!-- ── INFO ── -->
+                            <div class="sous-ticket-item__info">
+                              @if (st.systeme) {
+                                <span class="sys-tag">{{ st.systeme }}</span>
+                              }
+                              <span class="sous-ticket-item__titre">{{ st.titre }}</span>
+                              @if (st.resumeTechnique) {
+                                <p class="sous-ticket-item__desc">{{ st.resumeTechnique }}</p>
+                              }
+                            </div>
+
+                            <!-- ── BOUTONS ── -->
+                            <div class="sous-ticket-item__actions">
+
+                              <!-- Bouton Voir -->
+                              <button class="btn btn--voir"
+                                      (click)="voirSousTicket(st, $event)"
+                                      title="Voir le sous-ticket">
+                                🔍 Voir
+                              </button>
+
+                              <!-- Bouton Mantis — pas encore envoyé -->
+                              @if (!st.envoyeSurMantis && !mantisSuccessMap[st.id]) {
+                                <button class="btn--mantis"
+                                        [disabled]="sendingToMantisId === st.id"
+                                        (click)="envoyerVersMantis(st.id, ticket.id!, $event)"
+                                        title="Envoyer vers Mantis BT">
+                                  @if (sendingToMantisId === st.id) {
+                                    <span class="dot-spin dot-spin--orange"></span>
+                                    <span>Envoi...</span>
+                                  } @else {
+                                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:12px;height:12px">
+                                      <circle cx="8" cy="8" r="6"/>
+                                      <path d="M8 5v3l2 2"/>
+                                    </svg>
+                                    <span>Mantis</span>
+                                  }
+                                </button>
+                              }
+
+                              <!-- Lien Mantis — déjà envoyé -->
+                              @if (st.envoyeSurMantis || mantisSuccessMap[st.id]) {
+                                <a class="btn--mantis-done"
+                                   [href]="st.mantisUrl || mantisSuccessMap[st.id]"
+                                   target="_blank"
+                                   title="Voir sur Mantis BT"
+                                   (click)="$event.stopPropagation()">
+                                  ✅ Mantis
+                                </a>
+                              }
+
+                            </div>
+                          </div>
+
+                          @if (tachesMap[st.id] && tachesMap[st.id].length > 0) {
+                            <div class="taches-list">
+                              @for (t of tachesMap[st.id]; track t.id) {
+                                <div class="tache-item">
+                                  <span class="tache-icon">
+                                    {{ t.statut === 'FAIT' ? '✅' : t.statut === 'EN_COURS' ? '🔄' : '⏳' }}
+                                  </span>
+                                  <span class="tache-item__titre">{{ t.titre }}</span>
+                                  @if (t.assigneeNom || t.assigneePrenom) {
+                                    <span class="tache-item__assignee">
+                                      👤 {{ t.assigneePrenom }} {{ t.assigneeNom }}
+                                    </span>
+                                  }
+                                </div>
+                              }
+                            </div>
+                          } @else {
+                            <p class="taches-empty">Aucune tâche disponible.</p>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+
+            </div>
+          }
         </div>
-      </div>
+      }
 
     </div>
   </div>
+
+  <!-- ── CHAT BACKDROP + PANEL ── -->
+  <div class="chat-backdrop"
+       [class.chat-backdrop--visible]="chatPanelOpen"
+       (click)="closeChat()">
+  </div>
+
+  <aside class="chat-panel" [class.chat-panel--open]="chatPanelOpen">
+    <div class="chat-panel-header">
+      <div class="chat-panel-title">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M14 10a2 2 0 0 1-2 2H5l-3 3V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6z"/>
+        </svg>
+        <span>Chat Métier</span>
+        @if (selectedTicketTitre) {
+          <span class="panel-ticket-badge" title="{{ selectedTicketTitre }}">
+            #{{ selectedTicketId }}
+          </span>
+        }
+      </div>
+      <button class="chat-panel-close" (click)="closeChat()" title="Fermer">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="4" y1="4" x2="12" y2="12"/>
+          <line x1="12" y1="4" x2="4" y2="12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="chat-panel-selector">
+      <label class="selector-label">Ticket concerné</label>
+      <select class="selector-select" [(ngModel)]="selectedTicketId" (change)="onTicketSelected()">
+        <option [ngValue]="null" disabled>— Choisir un ticket —</option>
+        <option *ngFor="let t of tickets" [ngValue]="t.id">
+          #{{ t.id }} — {{ t.titre }}
+        </option>
+      </select>
+    </div>
+
+    <div class="chat-panel-body">
+      <div class="chat-panel-empty" *ngIf="!selectedTicketId">
+        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2">
+          <path d="M42 30a4 4 0 0 1-4 4H14L6 42V10a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v20z"/>
+          <line x1="16" y1="18" x2="32" y2="18"/>
+          <line x1="16" y1="24" x2="26" y2="24"/>
+        </svg>
+        <p>Sélectionnez un ticket pour afficher ou démarrer la discussion avec les équipes Métier.</p>
+      </div>
+
+      <app-chat
+        *ngIf="selectedTicketId"
+        [ticketId]="selectedTicketId!"
+        [isVisible]="chatPanelOpen"
+        (unreadChange)="unreadCount = $event">
+      </app-chat>
+    </div>
+  </aside>
+
+  <!-- ── MODAL ANALYSE IA ── -->
+  @if (showAnalyseModal) {
+    <div class="modal-overlay" (click)="fermerModal($event)">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>🚀 Lancer l'analyse IA</h2>
+          <button class="modal-close" (click)="fermerModal($event)">✕</button>
+        </div>
+        @if (selectedTicket) {
+          <p class="modal-sub">
+            Ticket #{{ selectedTicket.id }} — <strong>{{ selectedTicket.titre }}</strong>
+          </p>
+        }
+        <div class="modal-section">
+          <label class="modal-label">
+            Systèmes impactés <span class="required">*</span>
+          </label>
+          <div class="systemes-grid">
+            @for (sys of systemesDisponibles; track sys) {
+              <button class="sys-btn"
+                      [class.sys-btn--selected]="isSystemeSelected(sys)"
+                      (click)="toggleSysteme(sys)">
+                {{ sys }}
+              </button>
+            }
+          </div>
+          <span class="modal-hint" [class.modal-hint--ok]="systemesSelectionnes.length > 0">
+            {{ systemesSelectionnes.length === 0
+              ? 'Sélectionnez au moins un système'
+              : systemesSelectionnes.length + ' système(s) sélectionné(s)' }}
+          </span>
+        </div>
+        <div class="modal-section">
+          <label class="modal-label">Commentaire (optionnel)</label>
+          <textarea class="modal-textarea"
+                    rows="3"
+                    placeholder="Contexte supplémentaire pour l'IA..."
+                    [(ngModel)]="commentaireBA">
+          </textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn--cancel" (click)="fermerModal($event)">Annuler</button>
+          <button class="btn btn--analyse"
+                  [disabled]="systemesSelectionnes.length === 0"
+                  (click)="confirmerAnalyse($event)">
+            Confirmer l'analyse
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── MODAL VOIR SOUS-TICKET ── -->
+  @if (showSousTicketModal && selectedSousTicket) {
+    <div class="modal-overlay" (click)="showSousTicketModal = false">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+
+        <div class="modal-header">
+          <h2>🔍 Détails du sous-ticket</h2>
+          <button class="modal-close" (click)="showSousTicketModal = false">✕</button>
+        </div>
+
+        @if (selectedSousTicket.systeme) {
+          <p class="modal-sub">
+            Système : <strong>{{ selectedSousTicket.systeme }}</strong>
+          </p>
+        }
+
+        <div class="modal-section">
+          <label class="modal-label">Titre</label>
+          <p style="color: var(--text-primary); font-size: 14px; margin: 0;">
+            {{ selectedSousTicket.titre }}
+          </p>
+        </div>
+
+        @if (selectedSousTicket.resumeTechnique) {
+          <div class="modal-section">
+            <label class="modal-label">Résumé technique</label>
+            <p style="color: var(--text-secondary); font-size: 13px; line-height: 1.6; margin: 0;">
+              {{ selectedSousTicket.resumeTechnique }}
+            </p>
+          </div>
+        }
+
+        @if (selectedSousTicket.description) {
+          <div class="modal-section">
+            <label class="modal-label">Description</label>
+            <p style="color: var(--text-secondary); font-size: 13px; line-height: 1.6; margin: 0;">
+              {{ selectedSousTicket.description }}
+            </p>
+          </div>
+        }
+
+        <!-- ── Lien Mantis dans la modal ── -->
+        @if (selectedSousTicket.envoyeSurMantis || mantisSuccessMap[selectedSousTicket.id]) {
+          <div class="modal-section">
+            <label class="modal-label">🐛 Mantis BT</label>
+            <a class="mantis-link"
+               [href]="selectedSousTicket.mantisUrl || mantisSuccessMap[selectedSousTicket.id]"
+               target="_blank">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px">
+                <path d="M7 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V9"/>
+                <path d="M13 1l2 2-7 7-3-3 7-7z"/>
+              </svg>
+              Voir le ticket sur Mantis
+            </a>
+          </div>
+        }
+
+        <div class="modal-actions">
+          <!-- Bouton Envoyer vers Mantis depuis la modal -->
+          @if (!selectedSousTicket.envoyeSurMantis && !mantisSuccessMap[selectedSousTicket.id]) {
+            <button class="btn--mantis"
+                    [disabled]="sendingToMantisId === selectedSousTicket.id"
+                    (click)="envoyerVersMantis(selectedSousTicket.id, selectedSousTicket.ticketParentId!, $event)">
+              @if (sendingToMantisId === selectedSousTicket.id) {
+                <span class="dot-spin dot-spin--orange"></span> Envoi...
+              } @else {
+                🐛 Envoyer vers Mantis
+              }
+            </button>
+          }
+          <button class="btn--cancel" (click)="showSousTicketModal = false">Fermer</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
 </div>

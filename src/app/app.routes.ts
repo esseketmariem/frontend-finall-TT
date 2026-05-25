@@ -6,26 +6,23 @@ import { AddTicketComponent } from './add-ticket/add-ticket.component';
 import { MetierDashboardComponent } from './metier/metier-dashboard/metier-dashboard.component';
 import { AnalyseDashboardComponent } from './analyse/analyse-dashboard/analyse-dashboard.component';
 import { AnalyseTicketComponent } from './analyse/analyse-ticket/analyse-ticket.component';
-import { DemandecompteComponent } from './app/demandecompte/demandecompte.component';
-import { TechniqueDashboardComponent } from './technique/technique-dashboard/technique-dashboard.component';
+import { DemandecompteComponent } from './demandecompte/demandecompte.component';
 import { ProfileComponent } from './shared/profile/profile.component';
 
 import { authGuard } from './guards/auth.guard';
-import { adminGuard, metierGuard, baGuard, techniqueGuard } from './guards/role.guard';
+import { adminGuard, metierGuard, baGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: DemandecompteComponent },
 
-  // ==================== PROFIL ====================
   {
     path: 'profile',
     component: ProfileComponent,
     canActivate: [authGuard]
   },
 
-  // ==================== DASHBOARDS ====================
   {
     path: 'admin-dashboard',
     component: DashboardComponent,
@@ -58,11 +55,10 @@ export const routes: Routes = [
     component: AnalyseTicketComponent,
     canActivate: [authGuard, baGuard]
   },
-
   {
-    path: 'technique',
-    component: TechniqueDashboardComponent,
-    canActivate: [authGuard, techniqueGuard]
+    path: 'analyse/ticket/:id',
+    component: AnalyseTicketComponent,
+    canActivate: [authGuard, baGuard]
   },
 
   { path: '**', redirectTo: 'login' }

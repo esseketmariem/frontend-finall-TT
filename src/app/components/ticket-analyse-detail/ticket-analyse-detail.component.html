@@ -1,0 +1,159 @@
+<p>ticket-analyse-detail works!</p>
+<div class="detail-page">
+
+  <!-- ── Bouton retour ── -->
+  <button class="btn-retour" (click)="retour()">
+    ← Retour aux tickets
+  </button>
+
+  <!-- ── Loading ── -->
+  <div class="ba-loading" *ngIf="isLoading">
+    <div class="ba-spinner"></div>
+    <span>Chargement de l'analyse…</span>
+  </div>
+
+  <!-- ── Erreur ── -->
+  <div class="ba-error" *ngIf="errorMessage">
+    <span>⚠️ {{ errorMessage }}</span>
+    <button (click)="loadTicketDetail()">Réessayer</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- ── Contenu principal ── -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="detail-content" *ngIf="!isLoading && ticket">
+
+    <!-- ── En-tête ticket ── -->
+    <div class="detail-header">
+      <div class="detail-header__top">
+        <span class="detail-id">#{{ ticket.id }}</span>
+        <span class="ia-badge">✅ Analysé par IA</span>
+        <span [ngClass]="getPrioriteClass(ticket.priorite)" class="prio-badge">
+          {{ getPrioriteLabel(ticket.priorite) }}
+        </span>
+        <span [ngClass]="getStatutClass(ticket.statut)" class="statut-badge">
+          {{ ticket.statut }}
+        </span>
+      </div>
+      <h1 class="detail-titre">{{ ticket.titre }}</h1>
+      <p class="detail-date">📅 Créé le {{ ticket.dateCreation | date:'dd/MM/yyyy à HH:mm' }}</p>
+    </div>
+
+    <!-- ── Grille 2 colonnes ── -->
+    <div class="detail-grid">
+
+      <!-- ── Description ── -->
+      <div class="detail-card detail-card--full">
+        <h2 class="detail-card__title">📝 Description</h2>
+        <p class="detail-card__body">{{ ticket.description }}</p>
+      </div>
+
+      <!-- ── Résumé IA ── -->
+      <div class="detail-card detail-card--ia detail-card--full">
+        <h2 class="detail-card__title">🤖 Résumé IA</h2>
+        <p class="detail-card__body ia-text">{{ ticket.aiSummary || 'Aucun résumé disponible.' }}</p>
+      </div>
+
+      <!-- ── Commentaire BA ── -->
+      <div class="detail-card" *ngIf="ticket.commentaireBA">
+        <h2 class="detail-card__title">💬 Commentaire BA</h2>
+        <p class="detail-card__body">{{ ticket.commentaireBA }}</p>
+      </div>
+
+      <!-- ── Systèmes impactés ── -->
+      <div class="detail-card">
+        <h2 class="detail-card__title">🖥️ Systèmes impactés</h2>
+        <div class="sys-tags">
+          <span
+            class="sys-tag"
+            *ngFor="let sys of (ticket.systemesImpactes?.length ? ticket.systemesImpactes : ticket.systemesDetectes)"
+          >
+            {{ sys }}
+          </span>
+          <span *ngIf="!ticket.systemesImpactes?.length && !ticket.systemesDetectes?.length" class="no-data">
+            Aucun système renseigné
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!-- ── Section Sous-tickets ── -->
+    <!-- ══════════════════════════════════════════ -->
+    <div class="sous-section">
+      <h2 class="sous-section__title">
+        🔀 Sous-tickets
+        <span class="badge-count">{{ sousTickets.length }}</span>
+      </h2>
+
+      <!-- Aucun sous-ticket -->
+      <div class="no-sous" *ngIf="sousTickets.length === 0">
+        <p>Aucun sous-ticket généré pour ce ticket.</p>
+      </div>
+
+      <!-- Liste des sous-tickets -->
+      <div class="sous-ticket-card" *ngFor="let st of sousTickets">
+
+        <!-- En-tête sous-ticket -->
+        <div class="sous-ticket-card__head" (click)="toggleSousTicket(st)">
+          <div class="sous-ticket-card__info">
+            <span class="sous-ticket-card__titre">{{ st.titre }}</span>
+            <span class="sous-ticket-card__equipe">👥 {{ st.equipeResponsable }}</span>
+          </div>
+          <div class="sous-ticket-card__right">
+            <span [ngClass]="getPrioriteClass(st.priorite)">{{ getPrioriteLabel(st.priorite) }}</span>
+            <span class="toggle-icon">{{ expandedSousTicketId === st.id ? '▲' : '▼' }}</span>
+          </div>
+        </div>
+
+        <!-- Description sous-ticket -->
+        <p class="sous-ticket-card__desc" *ngIf="st.description">
+          {{ st.description }}
+        </p>
+
+        <!-- ── Tâches (expandable) ── -->
+        <div class="taches-panel" *ngIf="expandedSousTicketId === st.id">
+
+          <!-- Chargement tâches -->
+          <div class="ba-loading" *ngIf="!tachesMap[st.id]">
+            <div class="ba-spinner"></div>
+            <span>Chargement des tâches…</span>
+          </div>
+
+          <!-- Aucune tâche -->
+          <div class="no-tache" *ngIf="tachesMap[st.id]?.length === 0">
+            <p>Aucune tâche générée pour ce sous-ticket.</p>
+          </div>
+
+          <!-- Liste tâches -->
+          <div class="taches-list" *ngIf="tachesMap[st.id]?.length > 0">
+            <div class="tache-item" *ngFor="let t of tachesMap[st.id]">
+              <div class="tache-item__left">
+                <span class="tache-item__titre">{{ t.titre }}</span>
+                <span class="tache-item__assignee">
+                  👤 {{ t.assigneePrenom && t.assigneeNom ? t.assigneePrenom + ' ' + t.assigneeNom : 'Non assigné' }}
+                </span>
+              </div>
+              <div class="tache-item__right">
+                <span [ngClass]="getPrioriteClass(t.priorite)" class="prio-small">
+                  {{ getPrioriteLabel(t.priorite) }}
+                </span>
+                <span class="tache-statut">{{ t.statut }}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+    <!-- fin sous-section -->
+
+    <!-- ── Chat IA ── -->
+    <app-chat [ticketId]="ticket.id"></app-chat>
+
+  </div>
+  <!-- fin detail-content -->
+
+</div>

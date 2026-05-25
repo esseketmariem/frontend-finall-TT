@@ -1,3 +1,16 @@
-/* You can add global styles to this file, and also import other style files */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; background: #0a0a0a; }
+/* À ajouter dans votre styles.css global */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #09090d;   /* même que --bg-page */
+  min-height: 100vh;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* Évite le flash blanc sur les routes lazy-loaded */
+app-root {
+  display: block;
+  background: #09090d;
+  min-height: 100vh;
+}

@@ -23,7 +23,7 @@ export interface User {
 })
 export class UserService {
 
-  private apiUrl = 'http://localhost:8080/api/users';
+  private apiUrl = 'http://localhost:8070/api/users';
 
   constructor(private http: HttpClient) {}
 

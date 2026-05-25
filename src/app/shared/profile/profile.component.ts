@@ -1,88 +1,159 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { ProfileService } from '../../services/profile.service';
-import { ChangePasswordComponent } from '../change-password/change-password.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ChangePasswordComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
 export class ProfileComponent implements OnInit {
 
-  user: any = null;
-  profileForm!: FormGroup;
-  isLoading = false;
-  avatarPreview: string | null = null;
+  profile: any = {
+    prenom: '', nom: '', email: '',
+    equipe: '', telephone: '', poste: '',
+    dateNaissance: '', avatarUrl: null
+  };
+
+  formData: any = {};
+
   showPasswordModal = false;
+  passwordForm = { current: '', nouveau: '', confirm: '' };
+  passwordVisible = { current: false, nouveau: false, confirm: false };
 
-  defaultAvatar = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%232d3548'/><circle cx='50' cy='38' r='18' fill='%2394a3b8'/><ellipse cx='50' cy='85' rx='30' ry='22' fill='%2394a3b8'/></svg>`;
+  successMessage = '';
+  errorMessage = '';
 
-  constructor(
-    private fb: FormBuilder,
-    private profileService: ProfileService
-  ) {}
+  constructor(private profileService: ProfileService) {}
 
   ngOnInit(): void {
-    this.profileForm = this.fb.group({
-      prenom: ['', Validators.required],
-      nom: ['', Validators.required],
-      telephone: [''],
-      poste: [''],
-      dateNaissance: ['']
-    });
-
     this.profileService.getProfile().subscribe({
-      next: (data: any) => {
-        this.user = data;
-        this.profileForm.patchValue({
-          prenom: data.prenom,
-          nom: data.nom,
-          telephone: data.telephone,
-          poste: data.poste,
-          dateNaissance: data.dateNaissance
-        });
-        if (data.avatarUrl) {
-          this.avatarPreview = data.avatarUrl;
-        }
+      next: (user: any) => {
+        this.profile  = { ...user };
+        this.formData = { ...user };   // FIX 4 : toujours synced dès le chargement
       },
-      error: (err: any) => console.error('Erreur chargement profil', err)
-    });
-  }
-
-  onSubmit(): void {
-    if (this.profileForm.invalid) return;
-    this.isLoading = true;
-    this.profileService.updateProfile(this.profileForm.value).subscribe({
-      next: (data: any) => {
-        this.user = data;
-        this.isLoading = false;
-        alert('Profil mis à jour avec succès');
-      },
-      error: (err: any) => {
-        console.error('Erreur mise à jour', err);
-        this.isLoading = false;
+      error: () => {
+        this.showError('Impossible de charger le profil.');
+        this.formData = { ...this.profile }; // FIX 4 : formData jamais vide
       }
     });
   }
 
-  onFileSelected(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => this.avatarPreview = e.target.result;
-      reader.readAsDataURL(file);
-    }
+  getInitials(): string {
+    const p = this.formData.prenom?.charAt(0) || this.profile.prenom?.charAt(0) || '';
+    const n = this.formData.nom?.charAt(0)    || this.profile.nom?.charAt(0)    || '';
+    return (p + n).toUpperCase() || '??';
   }
 
-  openChangePasswordModal(): void {
+  triggerAvatarUpload(): void {
+    document.getElementById('avatarInput')?.click();
+  }
+
+  onAvatarChange(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      this.showError('Veuillez sélectionner une image valide.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      this.formData.avatarUrl = result;  // preview immédiat
+      this.profile.avatarUrl  = result;  // FIX 2 : synced pour affichage
+    };
+    reader.readAsDataURL(file);
+  }
+
+  onSave(): void {
+    if (!this.formData.prenom?.trim() || !this.formData.nom?.trim()) {
+      this.showError('Le prénom et le nom sont obligatoires.');
+      return;
+    }
+    if (this.formData.telephone && !/^[0-9]{8}$/.test(this.formData.telephone)) {
+      this.showError('Le numéro de téléphone doit contenir 8 chiffres.');
+      return;
+    }
+
+    const payload = {
+      nom:       this.formData.nom,
+      prenom:    this.formData.prenom,
+      telephone: this.formData.telephone || null,
+      poste:     this.formData.poste     || null,
+      avatarUrl: this.formData.avatarUrl || null
+    };
+
+    this.profileService.updateProfile(payload).subscribe({
+      next: (updated: any) => {
+        this.profile  = { ...this.profile,  ...updated };  // FIX 1 : garde email/equipe/dateNaissance
+        this.formData = { ...this.profile };               // FIX 1 : resync formData
+        if (updated.avatarUrl) localStorage.setItem('avatarUrl', updated.avatarUrl);
+        if (updated.prenom)    localStorage.setItem('prenom',    updated.prenom);
+        if (updated.nom)       localStorage.setItem('nom',       updated.nom);
+        this.showSuccess('Profil mis à jour avec succès !');
+      },
+      error: (err: any) => {
+        console.error('Erreur update profil:', err);
+        this.showError('Erreur lors de la mise à jour.');
+      }
+    });
+  }
+
+  openPasswordModal(): void {
+    this.passwordForm    = { current: '', nouveau: '', confirm: '' };
+    this.passwordVisible = { current: false, nouveau: false, confirm: false };
     this.showPasswordModal = true;
   }
 
-  closeChangePasswordModal(): void {
+  closePasswordModal(): void {
     this.showPasswordModal = false;
+    this.passwordForm = { current: '', nouveau: '', confirm: '' }; // FIX 3 : reset aussi à la fermeture
+  }
+
+  onChangePassword(): void {
+    if (!this.passwordForm.current) {
+      this.showError('Veuillez saisir votre mot de passe actuel.');
+      return;
+    }
+    if (this.passwordForm.nouveau.length < 6) {
+      this.showError('Le nouveau mot de passe doit contenir au moins 6 caractères.');
+      return;
+    }
+    if (this.passwordForm.nouveau !== this.passwordForm.confirm) {
+      this.showError('Les mots de passe ne correspondent pas.');
+      return;
+    }
+
+    this.profileService.changePassword(this.passwordForm.current, this.passwordForm.nouveau).subscribe({
+      next: () => {
+        this.closePasswordModal();
+        this.showSuccess('Mot de passe modifié avec succès !');
+      },
+      error: (err: any) => {
+        console.error('Erreur changement mot de passe:', err);
+        this.showError('Mot de passe actuel incorrect.');
+        // FIX 3 : on vide uniquement le champ current pour forcer une nouvelle saisie
+        this.passwordForm.current = '';
+      }
+    });
+  }
+
+  togglePasswordVisibility(field: 'current' | 'nouveau' | 'confirm'): void {
+    this.passwordVisible[field] = !this.passwordVisible[field];
+  }
+
+  private showSuccess(msg: string): void {
+    this.successMessage = msg;
+    this.errorMessage   = '';
+    setTimeout(() => (this.successMessage = ''), 4000);
+  }
+
+  private showError(msg: string): void {
+    this.errorMessage   = msg;
+    this.successMessage = '';
+    setTimeout(() => (this.errorMessage = ''), 4000);
   }
 }

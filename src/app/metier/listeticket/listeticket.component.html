@@ -13,51 +13,46 @@
     <div class="topbar-right">
       <div class="dot-online"></div>
     </div>
-  </div>  <!-- ← balise fermante manquante, ajoutée ici -->
+  </div>
 
   <div class="main-layout">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
-      <div class="sidebar-section">Vues rapides</div>
+      <div class="sidebar-section">
+        {{ isMetier() ? 'Mes tickets' : 'Vues rapides' }}
+      </div>
 
-      <div class="nav-item active" (click)="quickFilter('ALL')">
+      <div class="nav-item" [class.active]="selectedStatut === 'ALL'" (click)="quickFilter('ALL')">
         <span class="dot-status all"></span>
-        Tous les tickets
+        {{ isMetier() ? 'Tous mes tickets' : 'Tous les tickets' }}
         <span class="nav-badge">{{ tickets.length }}</span>
       </div>
-      <div class="nav-item" (click)="quickFilter('A_faire')">
-        <span class="dot-status todo"></span>
-        À traiter
-        <span class="nav-badge">{{ countTodo }}</span>
-      </div>
-      <div class="nav-item" (click)="quickFilter('En_cours')">
+
+      <div class="nav-item" [class.active]="selectedStatut === 'EN_COURS'" (click)="quickFilter('EN_COURS')">
         <span class="dot-status prog"></span>
         En cours
         <span class="nav-badge">{{ countInProgress }}</span>
       </div>
-      <div class="nav-item" (click)="quickFilter('Fait')">
-        <span class="dot-status done"></span>
-        Résolus
-        <span class="nav-badge">{{ countDone }}</span>
+
+      <div class="nav-item" [class.active]="selectedStatut === 'IN_ANALYSIS'" (click)="quickFilter('IN_ANALYSIS')">
+        <span class="dot-status analysis"></span>
+        En analyse
+        <span class="nav-badge">{{ countInAnalysis }}</span>
       </div>
 
       <div class="sidebar-section" style="margin-top: 12px;">Priorités</div>
       <div class="nav-item" (click)="selectedPriorite='ALL'; filterTickets()">
-        <span class="nav-icon">—</span>
-        Toutes
+        <span class="nav-icon">—</span> Toutes
       </div>
-      <div class="nav-item" (click)="selectedPriorite='Haute'; filterTickets()">
-        <span class="nav-icon">↑</span>
-        Haute
+      <div class="nav-item" (click)="selectedPriorite='HAUTE'; filterTickets()">
+        <span class="nav-icon">↑</span> Haute
       </div>
-      <div class="nav-item" (click)="selectedPriorite='Moyenne'; filterTickets()">
-        <span class="nav-icon">→</span>
-        Moyenne
+      <div class="nav-item" (click)="selectedPriorite='MOYENNE'; filterTickets()">
+        <span class="nav-icon">→</span> Moyenne
       </div>
-      <div class="nav-item" (click)="selectedPriorite='Basse'; filterTickets()">
-        <span class="nav-icon">↓</span>
-        Basse
+      <div class="nav-item" (click)="selectedPriorite='BASSE'; filterTickets()">
+        <span class="nav-icon">↓</span> Basse
       </div>
     </aside>
 
@@ -66,8 +61,12 @@
 
       <div class="page-header">
         <div>
-          <div class="page-title">Tickets de Projet</div>
-          <div class="page-sub">Gestion de Projet</div>
+          <div class="page-title">
+            {{ isMetier() ? 'Mes Tickets' : 'Tickets de Projet' }}
+          </div>
+          <div class="page-sub">
+            {{ isMetier() ? 'Tickets que vous avez créés' : 'Gestion de Projet' }}
+          </div>
         </div>
       </div>
 
@@ -78,16 +77,16 @@
           <div class="stat-value">{{ tickets.length }}</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">À traiter</div>
-          <div class="stat-value todo-color">{{ countTodo }}</div>
-        </div>
-        <div class="stat-card">
           <div class="stat-label">En cours</div>
           <div class="stat-value prog-color">{{ countInProgress }}</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Résolus</div>
-          <div class="stat-value done-color">{{ countDone }}</div>
+          <div class="stat-label">En analyse</div>
+          <div class="stat-value analysis-color">{{ countInAnalysis }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Analysés</div>
+          <div class="stat-value analyzed-color">{{ countAnalyzed }}</div>
         </div>
       </div>
 
@@ -104,16 +103,18 @@
 
         <select [(ngModel)]="selectedStatut" (change)="filterTickets()">
           <option value="ALL">Tous les statuts</option>
-          <option value="A_faire">À traiter</option>
-          <option value="En_cours">En cours</option>
-          <option value="Fait">Résolus</option>
+          <option value="EN_COURS">En cours</option>
+          <option value="IN_ANALYSIS">En analyse</option>
+          <option value="ANALYZED">Analysé</option>
+          <option value="APPROUVE">Approuvé</option>
+          <option value="REJETE">Rejeté</option>
         </select>
 
         <select [(ngModel)]="selectedPriorite" (change)="filterTickets()">
           <option value="ALL">Toutes les priorités</option>
-          <option value="Haute">Haute</option>
-          <option value="Moyenne">Moyenne</option>
-          <option value="Basse">Basse</option>
+          <option value="HAUTE">Haute</option>
+          <option value="MOYENNE">Moyenne</option>
+          <option value="BASSE">Basse</option>
         </select>
       </div>
 
@@ -126,6 +127,7 @@
               <th>Description</th>
               <th>Statut</th>
               <th>Priorité</th>
+              <th *ngIf="!isMetier()">Créé par</th>
               <th>Commentaires</th>
               <th>Actions</th>
             </tr>
@@ -135,6 +137,7 @@
 
               <td>
                 <span class="ticket-id">{{ formatTicketId(t.id!) }}</span>
+                <span class="lock-icon" *ngIf="isTicketLocked(t)" title="Ticket verrouillé — modification impossible">🔒</span>
                 <div class="td-titre" style="margin-top: 4px;">{{ t.titre }}</div>
               </td>
 
@@ -145,25 +148,40 @@
               <td>
                 <span class="badge"
                   [ngClass]="{
-                    'badge-todo':     t.statut === 'A_faire',
-                    'badge-progress': t.statut === 'En_cours',
-                    'badge-done':     t.statut === 'Fait'
+                    'badge-todo':        t.statut === 'A_FAIRE',
+                    'badge-progress':    t.statut === 'EN_COURS',
+                    'badge-in-analysis': t.statut === 'IN_ANALYSIS',
+                    'badge-analyzed':    t.statut === 'ANALYZED',
+                    'badge-done':        t.statut === 'FAIT',
+                    'badge-approved':    t.statut === 'APPROUVE',
+                    'badge-rejected':    t.statut === 'REJETE'
                   }">
                   <span class="badge-dot"></span>
-                  {{ t.statut === 'A_faire' ? 'À traiter' : t.statut === 'En_cours' ? 'En cours' : 'Résolu' }}
+                  {{ getStatutLabel(t.statut) }}
                 </span>
               </td>
 
               <td>
                 <span class="prio"
                   [ngClass]="{
-                    'prio-haute':   t.priorite === 'Haute',
-                    'prio-moyenne': t.priorite === 'Moyenne',
-                    'prio-basse':   t.priorite === 'Basse'
+                    'prio-haute':   t.priorite === 'HAUTE',
+                    'prio-moyenne': t.priorite === 'MOYENNE',
+                    'prio-basse':   t.priorite === 'BASSE'
                   }">
                   <span class="prio-dot"></span>
-                  {{ t.priorite }}
+                  {{
+                    t.priorite === 'HAUTE'   ? 'Haute'   :
+                    t.priorite === 'MOYENNE' ? 'Moyenne' :
+                    t.priorite === 'BASSE'   ? 'Basse'   : t.priorite
+                  }}
                 </span>
+              </td>
+
+              <td *ngIf="!isMetier()">
+                <div class="avatar-inline">
+                  <span class="avatar-circle">{{ getInitials(t.userNomComplet || '') }}</span>
+                  <span class="td-small">{{ t.userNomComplet || '—' }}</span>
+                </div>
               </td>
 
               <td>
@@ -174,16 +192,28 @@
 
               <td>
                 <div class="actions-cell">
+
+                  <!-- BOUTON VOIR -->
+                  <button
+                    class="action-btn view"
+                    title="Voir le ticket"
+                    (click)="openViewModal(t)">
+                    👁
+                  </button>
+
                   <button
                     class="action-btn"
-                    title="Modifier (uniquement si À traiter)"
-                    [disabled]="t.statut !== 'A_faire'"
+                    [class.locked]="isTicketLocked(t)"
+                    [title]="isTicketLocked(t) ? 'Verrouillé — statut : ' + getStatutLabel(t.statut) : 'Modifier'"
                     (click)="openEditModal(t)">
-                    ✏
+                    {{ isTicketLocked(t) ? '🔒' : '✏' }}
                   </button>
+
                   <button
+                    *ngIf="isAdmin() || isMetier()"
                     class="action-btn danger"
-                    title="Supprimer"
+                    title="Supprimer (uniquement si EN_COURS)"
+                    [disabled]="t.statut !== 'EN_COURS'"
                     (click)="deleteTicket(t.id!)">
                     🗑
                   </button>
@@ -194,9 +224,19 @@
           </tbody>
         </table>
 
-        <div class="empty-state" *ngIf="filteredTickets.length === 0">
+        <div class="empty-state" *ngIf="filteredTickets.length === 0 && !loading">
           <div class="empty-icon">📭</div>
-          Aucun ticket ne correspond aux filtres sélectionnés.
+          {{ isMetier()
+              ? 'Vous n\'avez créé aucun ticket correspondant aux filtres.'
+              : 'Aucun ticket ne correspond aux filtres sélectionnés.' }}
+        </div>
+
+        <div class="loading-state" *ngIf="loading">
+          <div class="spinner"></div> Chargement...
+        </div>
+
+        <div class="error-state" *ngIf="error">
+          ⚠ {{ error }}
         </div>
       </div>
 
@@ -206,7 +246,9 @@
 </div>
 
 
-<!-- MODAL COMMENTAIRES -->
+<!-- ═══════════════════════════════════════════════════════
+     MODAL COMMENTAIRES
+════════════════════════════════════════════════════════ -->
 <div class="overlay" *ngIf="showCommentModal" (click)="closeCommentBox()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -223,16 +265,15 @@
         </div>
         <div class="comment-item" *ngFor="let c of commentaires">
           <div class="comment-avatar">
-            {{ getInitials(c.username || c.utilisateur?.nom || 'U') }}
+            {{ getInitials(c.nomAuteur || c.username || c.utilisateur?.nom || 'U') }}
           </div>
           <div class="comment-content">
             <div class="comment-meta">
-              {{ c.username || c.utilisateur?.nom || 'Tunisie Telecom' }}
+              {{ c.nomAuteur || c.username || c.utilisateur?.nom || 'Tunisie Telecom' }}
             </div>
             <div class="comment-text">{{ c.commentaire }}</div>
           </div>
-          <button class="comment-del" title="Supprimer"
-                  (click)="deleteComment(c.id)">✕</button>
+          <button *ngIf="isAdmin()" class="comment-del" title="Supprimer" (click)="deleteComment(c.id)">✕</button>
         </div>
       </div>
       <div class="comment-input-row">
@@ -248,47 +289,206 @@
 </div>
 
 
-<!-- MODAL MODIFICATION -->
+<!-- ═══════════════════════════════════════════════════════
+     MODAL MODIFICATION
+════════════════════════════════════════════════════════ -->
 <div class="overlay" *ngIf="showEditModal" (click)="closeEditModal()">
   <div class="modal" (click)="$event.stopPropagation()">
+
     <div class="modal-header">
       <div>
-        <div class="modal-title">Modifier le ticket</div>
+        <div class="modal-title">
+          <span *ngIf="isAnalyseDone">🔒 Ticket verrouillé</span>
+          <span *ngIf="!isAnalyseDone">Modifier le ticket</span>
+        </div>
         <div class="modal-sub" *ngIf="editingTicket">
           {{ formatTicketId(editingTicket.id) }}
         </div>
       </div>
       <button class="modal-close" (click)="closeEditModal()">✕</button>
     </div>
+
+    <div class="lock-banner" *ngIf="isAnalyseDone && editingTicket">
+      🔒 Ce ticket est en statut
+      <strong>{{ getStatutLabel(editingTicket.statut) }}</strong>
+      — modification impossible.
+    </div>
+
     <div class="modal-body" *ngIf="editingTicket">
+
       <div class="form-row">
         <label class="form-label">Titre</label>
-        <input class="form-input" type="text" [(ngModel)]="editingTicket.titre">
+        <input class="form-input" type="text"
+               [(ngModel)]="editingTicket.titre"
+               [disabled]="isAnalyseDone">
       </div>
+
       <div class="form-row">
         <label class="form-label">Description</label>
         <textarea class="form-textarea"
-                  [(ngModel)]="editingTicket.description"></textarea>
+                  [(ngModel)]="editingTicket.description"
+                  [disabled]="isAnalyseDone"></textarea>
       </div>
+
       <div class="form-grid">
         <div class="form-row">
           <label class="form-label">Priorité</label>
-          <select class="form-select" [(ngModel)]="editingTicket.priorite">
-            <option value="Haute">Haute</option>
-            <option value="Moyenne">Moyenne</option>
-            <option value="Basse">Basse</option>
+          <select class="form-select"
+                  [(ngModel)]="editingTicket.priorite"
+                  [disabled]="isAnalyseDone">
+            <option value="HAUTE">Haute</option>
+            <option value="MOYENNE">Moyenne</option>
+            <option value="BASSE">Basse</option>
           </select>
         </div>
         <div class="form-row">
           <label class="form-label">Date souhaitée</label>
           <input class="form-input" type="date"
-                 [(ngModel)]="editingTicket.dateSouhaite">
+                 [(ngModel)]="editingTicket.dateSouhaite"
+                 [disabled]="isAnalyseDone">
         </div>
       </div>
+
+      <div class="form-row">
+        <label class="form-label">Statut</label>
+        <span *ngIf="isAnalyseDone" class="badge"
+              [ngClass]="{
+                'badge-in-analysis': editingTicket.statut === 'IN_ANALYSIS',
+                'badge-analyzed':    editingTicket.statut === 'ANALYZED',
+                'badge-approved':    editingTicket.statut === 'APPROUVE',
+                'badge-rejected':    editingTicket.statut === 'REJETE'
+              }">
+          <span class="badge-dot"></span>
+          {{ getStatutLabel(editingTicket.statut) }}
+        </span>
+        <select *ngIf="!isAnalyseDone" class="form-select"
+                [(ngModel)]="editingTicket.statut">
+          <option value="EN_COURS">En cours</option>
+        </select>
+      </div>
+
     </div>
+
     <div class="modal-footer">
-      <button class="btn btn-ghost" (click)="closeEditModal()">Annuler</button>
-      <button class="btn btn-primary" (click)="saveEdit()">Enregistrer</button>
+      <button class="btn btn-ghost" (click)="closeEditModal()">
+        {{ isAnalyseDone ? 'Fermer' : 'Annuler' }}
+      </button>
+      <button class="btn btn-primary" *ngIf="!isAnalyseDone" (click)="saveEdit()">
+        Enregistrer
+      </button>
     </div>
+
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     MODAL VOIR TICKET
+════════════════════════════════════════════════════════ -->
+<div class="overlay" *ngIf="showViewModal" (click)="closeViewModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Détails du ticket</div>
+        <div class="modal-sub" *ngIf="viewingTicket">
+          {{ formatTicketId(viewingTicket.id) }}
+        </div>
+      </div>
+      <div class="modal-header-right">
+        <span *ngIf="viewingTicket" class="badge"
+          [ngClass]="{
+            'badge-todo':        viewingTicket.statut === 'A_FAIRE',
+            'badge-progress':    viewingTicket.statut === 'EN_COURS',
+            'badge-in-analysis': viewingTicket.statut === 'IN_ANALYSIS',
+            'badge-analyzed':    viewingTicket.statut === 'ANALYZED',
+            'badge-done':        viewingTicket.statut === 'FAIT',
+            'badge-approved':    viewingTicket.statut === 'APPROUVE',
+            'badge-rejected':    viewingTicket.statut === 'REJETE'
+          }">
+          <span class="badge-dot"></span>
+          {{ getStatutLabel(viewingTicket.statut) }}
+        </span>
+        <button class="modal-close" (click)="closeViewModal()">✕</button>
+      </div>
+    </div>
+
+    <div class="modal-body" *ngIf="viewingTicket">
+
+      <div class="form-row">
+        <label class="form-label">Titre</label>
+        <input class="form-input" type="text"
+               [value]="viewingTicket.titre || ''"
+               disabled>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea view-textarea"
+                  [value]="viewingTicket.description || ''"
+                  disabled></textarea>
+      </div>
+
+      <div class="form-grid">
+
+        <div class="form-row">
+          <label class="form-label">Priorité</label>
+          <div class="view-field">
+            <span class="prio"
+              [ngClass]="{
+                'prio-haute':   viewingTicket.priorite === 'HAUTE',
+                'prio-moyenne': viewingTicket.priorite === 'MOYENNE',
+                'prio-basse':   viewingTicket.priorite === 'BASSE'
+              }">
+              <span class="prio-dot"></span>
+              {{
+                viewingTicket.priorite === 'HAUTE'   ? 'Haute'   :
+                viewingTicket.priorite === 'MOYENNE' ? 'Moyenne' :
+                viewingTicket.priorite === 'BASSE'   ? 'Basse'   : viewingTicket.priorite
+              }}
+            </span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Date souhaitée</label>
+          <input class="form-input" type="date"
+                 [value]="viewingTicket.dateSouhaite || ''"
+                 disabled>
+        </div>
+
+      </div>
+
+      <div class="form-row" *ngIf="!isMetier() && viewingTicket.userNomComplet">
+        <label class="form-label">Créé par</label>
+        <div class="view-field">
+          <div class="avatar-inline">
+            <span class="avatar-circle">{{ getInitials(viewingTicket.userNomComplet) }}</span>
+            <span>{{ viewingTicket.userNomComplet }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label">Commentaires</label>
+        <div class="view-field">
+          <button class="comment-btn" (click)="closeViewModal(); openCommentBox(viewingTicket.id!)">
+            💬 {{ viewingTicket.nombreCommentaires || 0 }} commentaire(s) — cliquer pour voir
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" (click)="closeViewModal()">Fermer</button>
+      <button
+        class="btn btn-primary"
+        *ngIf="viewingTicket && !isTicketLocked(viewingTicket)"
+        (click)="switchToEdit()">
+        ✏ Modifier
+      </button>
+    </div>
+
   </div>
 </div>

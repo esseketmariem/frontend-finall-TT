@@ -1,10 +1,11 @@
 <div class="page-wrapper" [class.dark]="isDark">
 
-  <button class="theme-toggle" (click)="isDark = !isDark" type="button">
+  <!-- THEME TOGGLE -->
+  <button class="theme-toggle" (click)="isDark = !isDark" type="button" [title]="isDark ? 'Mode clair' : 'Mode sombre'">
     <svg *ngIf="!isDark" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2">
       <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>
     </svg>
-    <svg *ngIf="isDark" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+    <svg *ngIf="isDark" viewBox="0 0 24 24" fill="none" stroke="#9898a5" stroke-width="2">
       <circle cx="12" cy="12" r="5"/>
       <line x1="12" y1="1" x2="12" y2="3"/>
       <line x1="12" y1="21" x2="12" y2="23"/>
@@ -19,18 +20,21 @@
 
   <div class="container">
 
-    <!-- LEFT -->
+    <!-- ═══ LEFT PANEL ═══ -->
     <div class="left">
+
       <div class="left-tag">
         <span class="left-dot"></span>
         Ma Plateforme
       </div>
-      <h2>Gérez vos tickets et projets</h2>
-      <p>Suivez vos tickets TODO, assignez des priorités et collaborez avec votre équipe en temps réel.</p>
+
+      <h2>Gérez vos tickets<br>et projets</h2>
+
+      <p>Suivez vos tickets, assignez des priorités et collaborez avec votre équipe en temps réel.</p>
 
       <div class="stat-row">
         <div class="stat">
-          <div class="stat-num">{{ totalTickets }}</div>
+          <div class="stat-num">{{ totalTickets || '—' }}</div>
           <div class="stat-label">Tickets actifs</div>
         </div>
         <div class="stat">
@@ -41,21 +45,23 @@
 
       <div class="ticket-preview">
         <div class="ticket-preview-icon">
-          <svg viewBox="0 0 16 16" fill="none" stroke="#2563eb" stroke-width="1.8">
+          <svg viewBox="0 0 16 16" fill="none" stroke="#4a8ee8" stroke-width="1.8">
             <rect x="2" y="2" width="12" height="12" rx="2"/>
             <line x1="5" y1="5" x2="11" y2="5"/>
-            <line x1="5" y1="8" x2="9" y2="8"/>
+            <line x1="5" y1="8" x2="9"  y2="8"/>
           </svg>
         </div>
         <div class="ticket-preview-text">
-          <strong>Migration base de données</strong><br>
-          Priorité haute · <span class="badge-todo">TODO</span>
+          <strong>Migration base de données</strong>
+          Haute priorité · <span class="badge-todo">TODO</span>
         </div>
       </div>
+
     </div>
 
-    <!-- RIGHT -->
+    <!-- ═══ RIGHT PANEL ═══ -->
     <div class="right">
+
       <div class="right-header">
         <h2>Se connecter</h2>
         <p>Accédez à votre espace de travail</p>
@@ -63,19 +69,37 @@
 
       <div class="field-group">
         <label class="field-label">Adresse e-mail</label>
-        <input class="field-input" type="email" placeholder="vous@exemple.com"
-               [(ngModel)]="email" name="email"/>
+        <input class="field-input"
+               type="email"
+               placeholder="vous@exemple.com"
+               [(ngModel)]="email"
+               name="email"
+               autocomplete="email"/>
       </div>
 
       <div class="field-group">
         <label class="field-label">Mot de passe</label>
-        <input class="field-input" type="password" placeholder="••••••••"
-               [(ngModel)]="password" name="password"/>
+        <input class="field-input"
+               type="password"
+               placeholder="••••••••"
+               [(ngModel)]="password"
+               name="password"
+               autocomplete="current-password"
+               (keyup.enter)="login()"/>
       </div>
 
-      <div *ngIf="errorMessage" class="error-msg">{{ errorMessage }}</div>
+      <div *ngIf="errorMessage" class="error-msg">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" style="width:14px;height:14px;flex-shrink:0">
+          <circle cx="8" cy="8" r="6"/>
+          <line x1="8" y1="5" x2="8" y2="8.5"/>
+          <circle cx="8" cy="11" r=".5" fill="currentColor"/>
+        </svg>
+        {{ errorMessage }}
+      </div>
 
-      <button class="btn-login" (click)="login()">Se connecter</button>
+      <button class="btn-login" (click)="login()" type="button">
+        Se connecter
+      </button>
 
       <div class="divider">
         <div class="divider-line"></div>
@@ -85,29 +109,29 @@
 
       <div class="role-row">
         <div class="role-badge">
-          <svg viewBox="0 0 16 16" fill="none" stroke="#6b7280" stroke-width="1.8">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
             <circle cx="8" cy="5" r="3"/>
             <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
           </svg>
           <div class="role-badge-label">Admin</div>
         </div>
         <div class="role-badge">
-          <svg viewBox="0 0 16 16" fill="none" stroke="#6b7280" stroke-width="1.8">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
             <rect x="2" y="2" width="12" height="12" rx="2"/>
             <line x1="5" y1="6" x2="11" y2="6"/>
-            <line x1="5" y1="9" x2="8" y2="9"/>
+            <line x1="5" y1="9" x2="8"  y2="9"/>
           </svg>
           <div class="role-badge-label">Analyste</div>
         </div>
         <div class="role-badge">
-          <svg viewBox="0 0 16 16" fill="none" stroke="#6b7280" stroke-width="1.8">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M8 2L2 6v8h12V6L8 2z"/>
           </svg>
           <div class="role-badge-label">Métier</div>
         </div>
         <div class="role-badge">
-          <svg viewBox="0 0 16 16" fill="none" stroke="#6b7280" stroke-width="1.8">
-            <path d="M2 13h12M4 13V7l4-5 4 5v6M6 13v-3h4v3"/>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polyline points="2,12 6,7 9,9 14,3"/>
           </svg>
           <div class="role-badge-label">Technique</div>
         </div>
@@ -117,6 +141,7 @@
         Pas encore de compte ?
         <a routerLink="/register">Créer un compte</a>
       </p>
+
     </div>
 
   </div>

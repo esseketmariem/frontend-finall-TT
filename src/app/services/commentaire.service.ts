@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class CommentaireService {
 
-  private commentUrl = 'http://localhost:8080/api/commentaires';
+  private commentUrl = 'http://localhost:8070/api/commentaires';
 
   constructor(private http: HttpClient) {}
 

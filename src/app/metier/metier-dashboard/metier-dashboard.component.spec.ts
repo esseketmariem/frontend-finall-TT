@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { MetierDashboardComponent } from './metier-dashboard.component';
-
+import { ListeticketComponent } from '../listeticket/listeticket.component';
 describe('MetierDashboardComponent', () => {
   let component: MetierDashboardComponent;
   let fixture: ComponentFixture<MetierDashboardComponent>;

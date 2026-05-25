@@ -13,16 +13,62 @@
 
     <div class="topbar-right">
       <div class="dot-online"></div>
-      <div class="user-pill cursor-pointer hover:bg-gray-100 transition"
-           (click)="goToProfile()">
-        <div class="user-avatar">
-          <img [src]="currentUser?.avatarUrl || 'assets/default-avatar.png'"
-               alt="Avatar" class="avatar-img">
+
+      <!-- 🔔 Notification Bell -->
+<app-notification-bell (openChat)="openChatFromNotif($event)"></app-notification-bell>      <button class="chat-trigger-btn" (click)="chatPanelOpen = true" title="Ouvrir le chat">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M14 10a2 2 0 0 1-2 2H5l-3 3V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6z"/>
+        </svg>
+        @if (unreadCount > 0) {
+          <span class="topbar-badge">{{ unreadCount }}</span>
+        }
+      </button>
+
+      <div class="user-pill-wrapper">
+        <div class="user-pill" (click)="toggleDropdown()">
+          <div class="user-avatar">
+            <img [src]="currentUser?.avatarUrl || defaultAvatar" alt="Avatar" class="avatar-img">
+          </div>
+          <div class="user-info">
+            <span class="user-name">{{ currentUser?.prenom }} {{ currentUser?.nom }}</span>
+            <span class="user-role">{{ currentUser?.poste }}</span>
+          </div>
+          <svg class="chevron" [class.open]="dropdownOpen"
+               viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 6 8 10 12 6"/>
+          </svg>
         </div>
-        <div class="user-info">
-          <span class="user-name">{{ currentUser?.prenom }} {{ currentUser?.nom }}</span>
-          <span class="user-role">{{ currentUser?.poste }}</span>
-        </div>
+
+        @if (dropdownOpen) {
+          <div class="dropdown-menu">
+            <div class="dropdown-header">
+              <div class="dh-avatar">
+                <img [src]="currentUser?.avatarUrl || defaultAvatar" alt="Avatar">
+              </div>
+              <div>
+                <div class="dh-name">{{ currentUser?.prenom }} {{ currentUser?.nom }}</div>
+                <div class="dh-email">{{ currentUser?.email }}</div>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item" (click)="goToProfile()">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                <path d="M14 14a6 6 0 0 0-12 0"/>
+              </svg>
+              Mon Profil
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item logout" (click)="logout()">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>
+                <polyline points="10 11 14 8 10 5"/>
+                <line x1="14" y1="8" x2="6" y2="8"/>
+              </svg>
+              Déconnexion
+            </div>
+          </div>
+        }
       </div>
     </div>
   </header>
@@ -33,9 +79,7 @@
     <aside class="sidebar">
       <div class="sidebar-section">Gestion de Projet</div>
 
-      <div class="nav-item"
-           [class.active]="view === 'create'"
-           (click)="view = 'create'">
+      <div class="nav-item" [class.active]="view === 'create'" (click)="view = 'create'">
         <svg class="nav-svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
           <rect x="2" y="2" width="12" height="12" rx="2"/>
           <line x1="8" y1="5" x2="8" y2="11"/>
@@ -44,9 +88,7 @@
         Nouveau Ticket
       </div>
 
-      <div class="nav-item"
-           [class.active]="view === 'list'"
-           (click)="view = 'list'">
+      <div class="nav-item" [class.active]="view === 'list'" (click)="goToList()">
         <svg class="nav-svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
           <rect x="2" y="2" width="12" height="12" rx="2"/>
           <line x1="5" y1="5" x2="11" y2="5"/>
@@ -56,30 +98,85 @@
         Mes Tickets
       </div>
 
-      <div class="nav-item"
-           [class.active]="view === 'profile'"
-           (click)="view = 'profile'">
+      <div class="nav-item" [class.active]="view === 'profile'" (click)="goToProfile()">
         <svg class="nav-svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
           <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
           <path d="M14 14a6 6 0 0 0-12 0"/>
         </svg>
         Mon Profil
       </div>
-
     </aside>
 
     <!-- CONTENT -->
-    <div class="content">
+    <div class="content" [class.content--shifted]="chatPanelOpen">
+
       @if (view === 'create') {
-        <app-add-ticket></app-add-ticket>
+        <app-add-ticket (ticketCreated)="onTicketCreated()"></app-add-ticket>
       }
+
       @if (view === 'list') {
-        <app-listeticket></app-listeticket>
+        <app-listeticket [reloadKey]="listKey"></app-listeticket>
       }
+
       @if (view === 'profile') {
         <app-profile></app-profile>
       }
+
     </div>
 
   </div>
+
+  <!-- ═══════════════════════════════════════════
+       CHAT SIDE PANEL
+  ═══════════════════════════════════════════════ -->
+
+  <div class="chat-backdrop"
+       [class.chat-backdrop--visible]="chatPanelOpen"
+       (click)="closeChat()">
+  </div>
+
+  <aside class="chat-panel" [class.chat-panel--open]="chatPanelOpen">
+
+    <div class="chat-panel-header">
+      <div class="chat-panel-title">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M14 10a2 2 0 0 1-2 2H5l-3 3V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6z"/>
+        </svg>
+        <span>Chat Business Analyst</span>
+      </div>
+      <button class="chat-panel-close" (click)="closeChat()" title="Fermer">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="4" y1="4" x2="12" y2="12"/>
+          <line x1="12" y1="4" x2="4" y2="12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="chat-panel-selector">
+      <label class="selector-label">Ticket concerné</label>
+      <select class="selector-select" [(ngModel)]="selectedTicketId" (change)="onTicketSelected()">
+        <option [ngValue]="null" disabled>— Choisir un ticket —</option>
+        @for (t of mesTickets; track t.id) {
+          <option [ngValue]="t.id">#{{ t.id }} — {{ t.titre }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="chat-panel-body">
+      @if (selectedTicketId) {
+        <app-chat [ticketId]="safeTicketId"></app-chat>
+      } @else {
+        <div class="chat-panel-empty">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2">
+            <path d="M42 30a4 4 0 0 1-4 4H14L6 42V10a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v20z"/>
+            <line x1="16" y1="18" x2="32" y2="18"/>
+            <line x1="16" y1="24" x2="26" y2="24"/>
+          </svg>
+          <p>Sélectionnez un ticket pour afficher ou démarrer la discussion avec le BA.</p>
+        </div>
+      }
+    </div>
+
+  </aside>
+
 </div>

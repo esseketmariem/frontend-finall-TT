@@ -10,8 +10,8 @@ export interface Tache {
   sousTicketTitre?: string;
   ticketId?: number;
   assigneeId?: number;
-  assigneeNom?: string;    // ✅ AJOUTÉ
-  assigneePrenom?: string; // ✅ AJOUTÉ
+  assigneeNom?: string;
+  assigneePrenom?: string;
 }
 
 export interface SousTicket {
@@ -20,9 +20,12 @@ export interface SousTicket {
   description?: string;
   statut?: string;
   priorite?: string;
+  prioriteEstimee?: string;   // FIX: backend returns prioriteEstimee not priorite
+  systeme?: string;           // FIX: backend returns systeme not systemeImpacte
   systemeImpacte?: string;
+  resumeTechnique?: string;   // FIX: backend field from AnalyseBAService
   equipeResponsable?: string;
   generePar?: string;
   dateCreation?: string;
-  taches?: Tache[]; // ✅ déjà présent — maintenant rempli par l'API
+  taches?: Tache[];
 }
