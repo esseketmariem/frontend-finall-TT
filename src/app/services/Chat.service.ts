@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Client } from '@stomp/stompjs';
+import { Client, StompSubscription } from '@stomp/stompjs';
 import { Subject, BehaviorSubject, Observable } from 'rxjs';
 
 export interface ChatMessageDTO {
@@ -37,60 +37,50 @@ export class ChatService {
   private typingTimeout: any;
   private lastTypingSent = 0;
 
+  // ← Souscriptions STOMP du ticket courant (séparées du client global)
+  private chatSub?: StompSubscription;
+  private typingSub?: StompSubscription;
+  private currentTicketId?: number;
+
   constructor(private http: HttpClient) {}
 
+  // ← Connexion initiale : crée le client STOMP une seule fois
   connect(ticketId: number): void {
+    this.currentTicketId = ticketId;
+
+    // Si déjà connecté, juste changer de topic
     if (this.client?.active) {
-      this.client.deactivate();
+      this.subscribeToTicket(ticketId);
+      return;
     }
 
     const token = localStorage.getItem('token') ?? '';
-
     this.connectionStatus$.next('connecting');
 
     this.client = new Client({
-      // ✅ URL WebSocket natif — sans /websocket à la fin
       brokerURL: `ws://localhost:8070/ws-chat`,
       reconnectDelay: 5000,
-
-      connectHeaders: {
-        Authorization: `Bearer ${token}`
-      },
+      connectHeaders: { Authorization: `Bearer ${token}` },
 
       onConnect: () => {
-        console.log('✅ WebSocket connecté — ticket', ticketId);
+        console.log('✅ ChatService WebSocket connecté — ticket', ticketId);
         this.connectionStatus$.next('connected');
-
-        this.client.subscribe(`/topic/chat/${ticketId}`, (msg) => {
-          try {
-            const parsed: ChatMessageDTO = JSON.parse(msg.body);
-            this.messages$.next(parsed);
-          } catch (e) {
-            console.error('Erreur parsing message WebSocket :', e);
-          }
-        });
-
-        this.client.subscribe(`/topic/chat/${ticketId}/typing`, (msg) => {
-          try {
-            const data = JSON.parse(msg.body);
-            this.typingUsers$.next(data.users ?? []);
-          } catch {}
-        });
+        this.subscribeToTicket(this.currentTicketId!);
       },
 
       onDisconnect: () => {
-        console.log('WebSocket déconnecté');
+        console.log('ChatService WebSocket déconnecté');
         this.connectionStatus$.next('disconnected');
         this.typingUsers$.next([]);
       },
 
       onStompError: (frame) => {
-        console.error('❌ Erreur STOMP :', frame.headers['message']);
+        console.error('❌ Erreur STOMP chat :', frame.headers['message']);
         this.connectionStatus$.next('error');
       },
 
       onWebSocketError: (error) => {
-        console.error('❌ Erreur WebSocket :', error);
+        console.error('❌ Erreur WebSocket chat :', error);
         this.connectionStatus$.next('error');
       }
     });
@@ -98,7 +88,40 @@ export class ChatService {
     this.client.activate();
   }
 
-  // ✅ Vérification renforcée avant publish
+  // ← Change de ticket sans recréer le client STOMP
+  changeTicket(ticketId: number): void {
+    this.currentTicketId = ticketId;
+    this.typingUsers$.next([]);
+
+    if (this.client?.active && this.connectionStatus$.value === 'connected') {
+      this.subscribeToTicket(ticketId);
+    }
+    // Si pas encore connecté, onConnect appellera subscribeToTicket automatiquement
+  }
+
+  // ← Désabonne les anciens topics et souscrit aux nouveaux
+  private subscribeToTicket(ticketId: number): void {
+    // Désabonner les anciens topics
+    try { this.chatSub?.unsubscribe(); } catch {}
+    try { this.typingSub?.unsubscribe(); } catch {}
+
+    this.chatSub = this.client.subscribe(`/topic/chat/${ticketId}`, (msg) => {
+      try {
+        const parsed: ChatMessageDTO = JSON.parse(msg.body);
+        this.messages$.next(parsed);
+      } catch (e) {
+        console.error('Erreur parsing message WebSocket :', e);
+      }
+    });
+
+    this.typingSub = this.client.subscribe(`/topic/chat/${ticketId}/typing`, (msg) => {
+      try {
+        const data = JSON.parse(msg.body);
+        this.typingUsers$.next(data.users ?? []);
+      } catch {}
+    });
+  }
+
   sendMessage(ticketId: number, payload: ChatMessageRequest): void {
     if (this.client?.active && this.connectionStatus$.value === 'connected') {
       this.client.publish({
@@ -146,22 +169,31 @@ export class ChatService {
     );
   }
 
-  disconnect(): void {
+  // ← Désabonne les topics du ticket seulement, NE PAS tuer le client STOMP
+  disconnectTicket(): void {
     clearTimeout(this.typingTimeout);
+    try { this.chatSub?.unsubscribe(); } catch {}
+    try { this.typingSub?.unsubscribe(); } catch {}
+    this.chatSub    = undefined;
+    this.typingSub  = undefined;
+    this.typingUsers$.next([]);
+  }
+
+  // ← Déconnexion totale (appelée uniquement au logout)
+  disconnect(): void {
+    this.disconnectTicket();
     if (this.client?.active) {
       this.client.deactivate();
     }
     this.connectionStatus$.next('disconnected');
-    this.typingUsers$.next([]);
   }
-  deleteMessage(messageId: number): Observable<void> {
-  const token = localStorage.getItem('token') ?? '';
-  const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-  return this.http.delete<void>(
-    `${this.baseUrl}/api/chat/messages/${messageId}`,
-    { headers }
-  );
-}
-  
-}
 
+  deleteMessage(messageId: number): Observable<void> {
+    const token = localStorage.getItem('token') ?? '';
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.http.delete<void>(
+      `${this.baseUrl}/api/chat/messages/${messageId}`,
+      { headers }
+    );
+  }
+}

@@ -1,17 +1,26 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import {
+  Component, OnInit, OnDestroy, OnChanges,
+  SimpleChanges, Input, Output, EventEmitter
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TicketService } from '../../services/ticket.service';
 import { Ticket } from '../../models/ticket';
 import { Subscription, Observable } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-
 interface Commentaire {
   id: number;
-  commentaire: string;
+  commentaire?: string;
+  contenu?: string;
+  created_at?: string | Date;
+  dateCreation?: string | Date;
+  ticket_id?: number;
+  user_id?: number;
   nomAuteur?: string;
   username?: string;
-  utilisateur?: { nom: string };
+  auteurPrenom?: string;
+  auteurNom?: string;
+  utilisateur?: { nom: string; prenom?: string };
 }
 
 @Component({
@@ -21,16 +30,19 @@ interface Commentaire {
   templateUrl: './listeticket.component.html',
   styleUrls: ['./listeticket.component.css']
 })
-export class ListeticketComponent implements OnInit, OnDestroy {
-  @Input() reloadKey: number = 0;
+export class ListeticketComponent implements OnInit, OnDestroy, OnChanges {
+
+  @Input()  key: number = 0;
+  @Output() openTicketDetail = new EventEmitter<Ticket>();
+  @Output() openChat = new EventEmitter<{ id: number; titre: string }>();
 
   tickets: Ticket[] = [];
   filteredTickets: Ticket[] = [];
   loading = false;
   error: string | null = null;
 
-  searchText = '';
-  selectedStatut = 'ALL';
+  searchText       = '';
+  selectedStatut   = 'ALL';
   selectedPriorite = 'ALL';
 
   get countTodo():       number { return this.tickets.filter(t => t.statut === 'A_FAIRE').length; }
@@ -39,16 +51,17 @@ export class ListeticketComponent implements OnInit, OnDestroy {
   get countAnalyzed():   number { return this.tickets.filter(t => t.statut === 'ANALYZED').length; }
   get countDone():       number { return this.tickets.filter(t => t.statut === 'FAIT').length; }
 
-  showCommentModal = false;
-  activeCommentTicketId: number = 0;
+  // ── Commentaires ──────────────────────────────
+  showCommentModal      = false;
+  activeCommentTicketId = 0;
   commentaires: Commentaire[] = [];
-  commentText = '';
+  commentText           = '';
+  loadingComments       = false;
 
-  showEditModal = false;
+  // ── Modals ────────────────────────────────────
+  showEditModal  = false;
   editingTicket: Ticket | null = null;
-
-  // ← NOUVEAU
-  showViewModal = false;
+  showViewModal  = false;
   viewingTicket: Ticket | null = null;
 
   private subscriptions = new Subscription();
@@ -77,10 +90,17 @@ export class ListeticketComponent implements OnInit, OnDestroy {
     );
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['key'] && !changes['key'].firstChange) {
+      this.loadTickets();
+    }
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
 
+  // ── Helpers auth ──────────────────────────────
   private getCurrentUser(): any {
     const stored = localStorage.getItem('currentUser');
     if (stored) {
@@ -102,19 +122,20 @@ export class ListeticketComponent implements OnInit, OnDestroy {
     const token = localStorage.getItem('token');
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      'Content-Type':  'application/json'
     });
   }
 
+  // ── Tickets ───────────────────────────────────
   loadTickets(): void {
     const metier = this.isMetier();
     this.loading = true;
-    this.error = null;
+    this.error   = null;
 
     if (metier) {
       const user = this.getCurrentUser();
       if (!user?.id) {
-        this.error = 'Utilisateur non identifié. Veuillez vous reconnecter.';
+        this.error   = 'Utilisateur non identifié. Veuillez vous reconnecter.';
         this.loading = false;
         return;
       }
@@ -132,8 +153,8 @@ export class ListeticketComponent implements OnInit, OnDestroy {
           this.loading = false;
         },
         error: (err: unknown) => {
-          console.error('❌ Erreur chargement:', err);
-          this.error = 'Erreur lors du chargement des tickets';
+          console.error('Erreur chargement:', err);
+          this.error   = 'Erreur lors du chargement des tickets';
           this.loading = false;
         }
       })
@@ -143,7 +164,7 @@ export class ListeticketComponent implements OnInit, OnDestroy {
   filterTickets(): void {
     const search = this.searchText.toLowerCase();
     this.filteredTickets = this.tickets.filter(t => {
-      const matchSearch = !search ||
+      const matchSearch   = !search ||
         t.titre?.toLowerCase().includes(search) ||
         t.description?.toLowerCase().includes(search);
       const matchStatut   = this.selectedStatut   === 'ALL' || t.statut   === this.selectedStatut;
@@ -165,6 +186,19 @@ export class ListeticketComponent implements OnInit, OnDestroy {
   getInitials(name: string): string {
     if (!name) return '?';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  getInitialesCommentaire(prenom: string, nom: string): string {
+    const p = prenom?.[0] ?? '';
+    const n = nom?.[0] ?? '';
+    return (p + n).toUpperCase() || '?';
+  }
+
+  getCommentAuteur(c: Commentaire): string {
+    if (c.auteurPrenom || c.auteurNom) {
+      return `${c.auteurPrenom ?? ''} ${c.auteurNom ?? ''}`.trim();
+    }
+    return c.nomAuteur ?? c.username ?? c.utilisateur?.nom ?? 'Anonyme';
   }
 
   getStatutLabel(statut: string | undefined): string {
@@ -197,42 +231,57 @@ export class ListeticketComponent implements OnInit, OnDestroy {
     );
   }
 
+  // ── COMMENTAIRES ──────────────────────────────
+
   openCommentBox(ticketId: number): void {
     this.activeCommentTicketId = ticketId;
-    this.showCommentModal = true;
-    this.commentaires = [];
-    this.commentText = '';
+    this.showCommentModal      = true;
+    this.commentaires          = [];
+    this.commentText           = '';
+    this.reloadComments(ticketId);
+  }
+
+  private reloadComments(ticketId: number): void {
+    this.loadingComments = true;
     this.http.get<Commentaire[]>(
       `${this.apiUrl}/commentaires/ticket/${ticketId}`,
       { headers: this.getAuthHeaders() }
     ).subscribe({
-      next: (data: Commentaire[]) => this.commentaires = data,
-      error: (err: unknown) => console.error('Erreur chargement commentaires:', err)
+      next: (data: Commentaire[]) => {
+        this.commentaires    = data;
+        this.loadingComments = false;
+        console.log(`📜 [Commentaires] ${data.length} commentaires pour ticket ${ticketId}`);
+      },
+      error: (err: unknown) => {
+        console.error('Erreur chargement commentaires:', err);
+        this.loadingComments = false;
+      }
     });
   }
 
   closeCommentBox(): void {
     this.showCommentModal = false;
-    this.commentaires = [];
-    this.commentText = '';
+    this.commentaires     = [];
+    this.commentText      = '';
   }
 
   addComment(): void {
     if (!this.commentText.trim()) return;
+
     const user = this.getCurrentUser();
-    if (!user?.id) { console.error('Utilisateur non identifié'); return; }
-    this.http.post<Commentaire>(
+    if (!user?.id) {
+      console.error('Utilisateur non identifié');
+      return;
+    }
+
+    this.http.post<any>(
       `${this.apiUrl}/commentaires/${this.activeCommentTicketId}`,
-      { commentaire: this.commentText, userId: user.id },
+      { commentaire: this.commentText.trim(), userId: user.id },
       { headers: this.getAuthHeaders() }
     ).subscribe({
-      next: (c: any) => {
-        if (Array.isArray(c)) {
-          this.commentaires = c;
-        } else {
-          this.commentaires.push(c);
-        }
+      next: () => {
         this.commentText = '';
+        this.reloadComments(this.activeCommentTicketId);
         const t = this.tickets.find(x => x.id === this.activeCommentTicketId);
         if (t) t.nombreCommentaires = (t.nombreCommentaires || 0) + 1;
       },
@@ -246,7 +295,7 @@ export class ListeticketComponent implements OnInit, OnDestroy {
       { headers: this.getAuthHeaders() }
     ).subscribe({
       next: () => {
-        this.commentaires = this.commentaires.filter(c => c.id !== commentId);
+        this.reloadComments(this.activeCommentTicketId);
         const t = this.tickets.find(x => x.id === this.activeCommentTicketId);
         if (t && t.nombreCommentaires) t.nombreCommentaires--;
       },
@@ -254,6 +303,7 @@ export class ListeticketComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ── EDIT MODAL ────────────────────────────────
   get isAnalyseDone(): boolean {
     return this.isTicketLocked(this.editingTicket!);
   }
@@ -299,10 +349,11 @@ export class ListeticketComponent implements OnInit, OnDestroy {
     );
   }
 
-  // ← NOUVELLES MÉTHODES VOIR TICKET
+  // ── VIEW MODAL ────────────────────────────────
   openViewModal(ticket: Ticket): void {
     this.viewingTicket = { ...ticket };
     this.showViewModal = true;
+    this.openTicketDetail.emit(ticket);
   }
 
   closeViewModal(): void {
@@ -315,5 +366,10 @@ export class ListeticketComponent implements OnInit, OnDestroy {
     const ticket = { ...this.viewingTicket };
     this.closeViewModal();
     this.openEditModal(ticket);
+  }
+
+  // ── CHAT ──────────────────────────────────────
+  openChatForTicket(ticket: Ticket): void {
+    this.openChat.emit({ id: ticket.id!, titre: ticket.titre ?? '' });
   }
 }

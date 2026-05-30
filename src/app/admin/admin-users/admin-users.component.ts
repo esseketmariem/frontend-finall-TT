@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService, User, Role } from '../../services/user.service';
 
+
 @Component({
   selector: 'app-admin-users',
   standalone: true,
@@ -18,6 +19,7 @@ export class AdminUsersComponent implements OnInit {
   errorMessage = '';
 
   searchTerm = '';
+  roleFilter = 'tous';
   sortCol    = 'nom';
   sortAsc    = true;
 
@@ -54,11 +56,28 @@ export class AdminUsersComponent implements OnInit {
 
   onSearch(): void { this.currentPage = 1; this.applyFilter(); }
 
+  setRoleFilter(role: string): void {
+    this.roleFilter = role;
+    this.currentPage = 1;
+    this.applyFilter();
+  }
+
   applyFilter(): void {
-    const q = this.searchTerm.toLowerCase();
-    let list = this.users.filter(u =>
-      [u.nom, u.prenom, u.email].some(v => v?.toLowerCase().includes(q))
-    );
+    const q = this.searchTerm.toLowerCase().trim();
+
+    let list = this.users.filter(u => {
+      const matchSearch = !q ||
+        [u.nom, u.prenom, u.email].some(v => v?.toLowerCase().includes(q));
+
+      const matchRole =
+        this.roleFilter === 'tous' ||
+        (this.roleFilter === 'ADMIN'            && u.role === Role.ADMIN) ||
+        (this.roleFilter === 'METIER'           && u.role === Role.METIER) ||
+        (this.roleFilter === 'BUSINESS_ANALYST' && u.role === Role.BUSINESS_ANALYST);
+
+      return matchSearch && matchRole;
+    });
+
     list = list.sort((a, b) => {
       const va = (a as any)[this.sortCol] ?? '';
       const vb = (b as any)[this.sortCol] ?? '';
@@ -66,6 +85,7 @@ export class AdminUsersComponent implements OnInit {
         ? String(va).localeCompare(String(vb))
         : String(vb).localeCompare(String(va));
     });
+
     this.filtered = list;
   }
 
@@ -76,9 +96,15 @@ export class AdminUsersComponent implements OnInit {
   }
 
   get totalPages() { return Math.ceil(this.filtered.length / this.pageSize) || 1; }
-  get pages()      { return Array.from({length: this.totalPages}, (_, i) => i + 1); }
-  get paginated()  { const s = (this.currentPage - 1) * this.pageSize; return this.filtered.slice(s, s + this.pageSize); }
-  goPage(p: number) { if (p >= 1 && p <= this.totalPages) this.currentPage = p; }
+  get pages()      { return Array.from({ length: this.totalPages }, (_, i) => i + 1); }
+  get paginated()  {
+    const s = (this.currentPage - 1) * this.pageSize;
+    return this.filtered.slice(s, s + this.pageSize);
+  }
+
+  goPage(p: number): void {
+    if (p >= 1 && p <= this.totalPages) this.currentPage = p;
+  }
 
   openModal(u?: User): void {
     this.editUser = u ?? null;
@@ -87,18 +113,19 @@ export class AdminUsersComponent implements OnInit {
       : { nom: '', prenom: '', email: '', role: Role.METIER };
     this.showModal = true;
   }
+
   closeModal(): void { this.showModal = false; }
 
   saveUser(): void {
     if (this.editUser) {
       this.userService.updateUser(this.editUser.id!, this.form as User).subscribe({
         next: () => { this.closeModal(); this.loadUsers(); },
-        error: () => alert('Erreur lors de la mise a jour.')
+        error: () => alert('Erreur lors de la mise à jour.')
       });
     } else {
       this.userService.createUser(this.form as User).subscribe({
         next: () => { this.closeModal(); this.loadUsers(); },
-        error: () => alert('Erreur lors de la creation.')
+        error: () => alert('Erreur lors de la création.')
       });
     }
   }
@@ -126,7 +153,7 @@ export class AdminUsersComponent implements OnInit {
         this.passwordInput = '';
         this.loadUsers();
       },
-      error: () => alert('Erreur lors de l acceptation.')
+      error: () => alert('Erreur lors de l\'acceptation.')
     });
   }
 
@@ -146,13 +173,15 @@ export class AdminUsersComponent implements OnInit {
     { bg: 'rgba(74,144,217,.18)',  color: '#6eaaec' },
     { bg: 'rgba(61,176,122,.18)',  color: '#3db07a' },
     { bg: 'rgba(212,160,23,.18)', color: '#d4a017' },
-    { bg: 'rgba(180,100,220,.18)',color: '#b464dc' },
-    { bg: 'rgba(224,85,85,.18)',  color: '#e05555' },
+    { bg: 'rgba(180,100,220,.18)', color: '#b464dc' },
+    { bg: 'rgba(224,85,85,.18)',   color: '#e05555' },
   ];
+
   avatarBg(u: User): string {
     const i = (u.nom?.charCodeAt(0) ?? 0) % this.PALETTES.length;
     return this.PALETTES[i].bg;
   }
+
   avatarColor(u: User): string {
     const i = (u.nom?.charCodeAt(0) ?? 0) % this.PALETTES.length;
     return this.PALETTES[i].color;
@@ -163,6 +192,7 @@ export class AdminUsersComponent implements OnInit {
     if (role === Role.BUSINESS_ANALYST) return 'badge badge-agent';
     return 'badge badge-user';
   }
+
   getRoleLabel(role: Role): string {
     if (role === Role.ADMIN)            return 'Admin';
     if (role === Role.BUSINESS_ANALYST) return 'Business Analyst';
@@ -170,13 +200,14 @@ export class AdminUsersComponent implements OnInit {
   }
 
   getStatutClass(statut?: string): string {
-    if (statut === 'ACCEPTE')    return 'badge badge-active';
-    if (statut === 'REFUSE')     return 'badge badge-inactive';
+    if (statut === 'ACCEPTE') return 'badge badge-active';
+    if (statut === 'REFUSE')  return 'badge badge-inactive';
     return 'badge badge-todo';
   }
+
   getStatutLabel(statut?: string): string {
-    if (statut === 'ACCEPTE')    return 'Accepte';
-    if (statut === 'REFUSE')     return 'Refuse';
+    if (statut === 'ACCEPTE') return 'Accepté';
+    if (statut === 'REFUSE')  return 'Refusé';
     return 'En attente';
   }
 }

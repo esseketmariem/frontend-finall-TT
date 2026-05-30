@@ -1,1 +1,226 @@
-<p>demandecompte works!</p>
+<div class="page-wrapper">
+  <div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100">
+      <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+
+        <!-- ── Card ──────────────────────────────────────────── -->
+        <div class="card">
+
+          <!-- Header -->
+          <div class="card-header text-center">
+            <div class="header-icon">📋</div>
+            <h4 class="mb-1">Demande de Compte</h4>
+            <p class="mb-0">Remplissez le formulaire, un administrateur activera votre accès</p>
+          </div>
+
+          <!-- Body -->
+          <div class="card-body">
+
+            <!-- Error Alert -->
+            <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-start gap-2">
+              <span class="alert-icon">⚠️</span>
+              <span>{{ errorMessage }}</span>
+            </div>
+
+            <!-- ── FORM ─────────────────────────────────────── -->
+            <div *ngIf="!successMessage">
+
+              <!-- Row: Nom + Prénom -->
+              <div class="form-row-two">
+                <div class="form-group">
+                  <label for="nom" class="form-label">
+                    Nom <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="nom"
+                    class="form-control"
+                    [(ngModel)]="formData.nom"
+                    name="nom"
+                    placeholder="Dupont"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="prenom" class="form-label">
+                    Prénom <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="prenom"
+                    class="form-control"
+                    [(ngModel)]="formData.prenom"
+                    name="prenom"
+                    placeholder="Jean"
+                    required
+                  />
+                </div>
+              </div>
+
+              <!-- Email -->
+              <div class="form-group">
+                <label for="email" class="form-label">
+                  Adresse Email <span class="text-danger">*</span>
+                </label>
+                <div class="input-wrapper">
+                  <span class="input-icon">✉️</span>
+                  <input
+                    type="email"
+                    id="email"
+                    class="form-control with-icon"
+                    [(ngModel)]="formData.email"
+                    name="email"
+                    placeholder="jean.dupont@entreprise.com"
+                    required
+                  />
+                </div>
+              </div>
+
+              <!-- Téléphone -->
+              <div class="form-group">
+                <label for="telephone" class="form-label">Téléphone</label>
+                <div class="input-wrapper">
+                  <span class="input-icon">📞</span>
+                  <input
+                    type="tel"
+                    id="telephone"
+                    class="form-control with-icon"
+                    [(ngModel)]="formData.telephone"
+                    name="telephone"
+                    placeholder="+216 XX XXX XXX"
+                  />
+                </div>
+              </div>
+
+              <!-- Rôle -->
+              <div class="form-group">
+                <label for="role" class="form-label">
+                  Rôle <span class="text-danger">*</span>
+                </label>
+                <div class="input-wrapper">
+                  <span class="input-icon">👤</span>
+                  <select
+                    id="role"
+                    class="form-control with-icon"
+                    [(ngModel)]="formData.role"
+                    name="role"
+                    required
+                  >
+                    <option value="" disabled selected>Sélectionnez votre rôle...</option>
+                    <option value="METIER">Métier</option>
+                    <option value="BUSINESS_ANALYST">Business Analyst</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Divider -->
+              <div class="divider"><span>Sécurité</span></div>
+
+              <!-- Mot de passe -->
+              <div class="form-group">
+                <label for="motDePasse" class="form-label">
+                  Mot de passe souhaité <span class="text-danger">*</span>
+                </label>
+                <div class="input-wrapper">
+                  <span class="input-icon">🔒</span>
+                  <input
+                    [type]="showPassword ? 'text' : 'password'"
+                    id="motDePasse"
+                    class="form-control with-icon with-toggle"
+                    [(ngModel)]="formData.motDePasse"
+                    name="motDePasse"
+                    placeholder="Minimum 6 caractères"
+                    required
+                  />
+                  <button
+                    type="button"
+                    class="password-toggle"
+                    (click)="showPassword = !showPassword"
+                    tabindex="-1"
+                  >
+                    {{ showPassword ? '🙈' : '👁️' }}
+                  </button>
+                </div>
+                <div class="form-hint">
+                  Le mot de passe pourra être modifié après activation de votre compte.
+                </div>
+              </div>
+
+              <!-- Required note -->
+              <p class="required-note">
+                <span class="text-danger">*</span> Champs obligatoires
+              </p>
+
+              <!-- Buttons -->
+              <div class="btn-group-custom">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  (click)="goToLogin()"
+                >
+                  ← Retour au login
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="onSubmit()"
+                  [disabled]="isLoading
+                    || !formData.nom
+                    || !formData.prenom
+                    || !formData.email
+                    || !formData.role
+                    || !formData.motDePasse"
+                >
+                  <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                  {{ isLoading ? 'Envoi en cours...' : 'Envoyer la demande' }}
+                </button>
+              </div>
+
+            </div>
+            <!-- ── END FORM ──────────────────────────────────── -->
+
+            <!-- ── SUCCESS STATE ─────────────────────────────── -->
+            <div *ngIf="successMessage" class="success-state text-center">
+              <div class="success-icon-circle">✓</div>
+              <h5 class="success-title">Demande envoyée !</h5>
+              <p class="success-message">{{ successMessage }}</p>
+              <div class="success-steps">
+                <div class="step">
+                  <span class="step-number">1</span>
+                  <span class="step-text">Votre demande est en attente de validation</span>
+                </div>
+                <div class="step">
+                  <span class="step-number">2</span>
+                  <span class="step-text">Un administrateur va examiner votre dossier</span>
+                </div>
+                <div class="step">
+                  <span class="step-number">3</span>
+                  <span class="step-text">Vous recevrez vos identifiants par email</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                class="btn btn-primary w-100 mt-3"
+                (click)="goToLogin()"
+              >
+                Retour au login
+              </button>
+            </div>
+            <!-- ── END SUCCESS ───────────────────────────────── -->
+
+          </div>
+          <!-- end card-body -->
+
+        </div>
+        <!-- end card -->
+
+        <!-- Footer -->
+        <p class="footer-note text-center mt-3">
+          Vous avez déjà un compte ?
+          <a (click)="goToLogin()" class="footer-link">Se connecter</a>
+        </p>
+
+      </div>
+    </div>
+  </div>
+</div>

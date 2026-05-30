@@ -133,19 +133,22 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let t of filteredTickets">
+            <tr *ngFor="let t of filteredTickets"
+                class="tr-row"
+                style="cursor:pointer"
+                (click)="openViewModal(t)">
 
-              <td>
+              <td (click)="$event.stopPropagation()">
                 <span class="ticket-id">{{ formatTicketId(t.id!) }}</span>
-                <span class="lock-icon" *ngIf="isTicketLocked(t)" title="Ticket verrouillé — modification impossible">🔒</span>
+                <span class="lock-icon" *ngIf="isTicketLocked(t)" title="Ticket verrouillé">🔒</span>
                 <div class="td-titre" style="margin-top: 4px;">{{ t.titre }}</div>
               </td>
 
-              <td>
+              <td (click)="$event.stopPropagation()">
                 <div class="td-desc">{{ t.description }}</div>
               </td>
 
-              <td>
+              <td (click)="$event.stopPropagation()">
                 <span class="badge"
                   [ngClass]="{
                     'badge-todo':        t.statut === 'A_FAIRE',
@@ -161,7 +164,7 @@
                 </span>
               </td>
 
-              <td>
+              <td (click)="$event.stopPropagation()">
                 <span class="prio"
                   [ngClass]="{
                     'prio-haute':   t.priorite === 'HAUTE',
@@ -177,23 +180,22 @@
                 </span>
               </td>
 
-              <td *ngIf="!isMetier()">
+              <td *ngIf="!isMetier()" (click)="$event.stopPropagation()">
                 <div class="avatar-inline">
                   <span class="avatar-circle">{{ getInitials(t.userNomComplet || '') }}</span>
                   <span class="td-small">{{ t.userNomComplet || '—' }}</span>
                 </div>
               </td>
 
-              <td>
+              <td (click)="$event.stopPropagation()">
                 <button class="comment-btn" (click)="openCommentBox(t.id!)">
                   💬 {{ t.nombreCommentaires || 0 }}
                 </button>
               </td>
 
-              <td>
+              <td (click)="$event.stopPropagation()">
                 <div class="actions-cell">
 
-                  <!-- BOUTON VOIR -->
                   <button
                     class="action-btn view"
                     title="Voir le ticket"
@@ -247,10 +249,11 @@
 
 
 <!-- ═══════════════════════════════════════════════════════
-     MODAL COMMENTAIRES
+     MODAL COMMENTAIRES  ✅ CORRIGÉE
 ════════════════════════════════════════════════════════ -->
 <div class="overlay" *ngIf="showCommentModal" (click)="closeCommentBox()">
   <div class="modal" (click)="$event.stopPropagation()">
+
     <div class="modal-header">
       <div>
         <div class="modal-title">Commentaires</div>
@@ -258,33 +261,79 @@
       </div>
       <button class="modal-close" (click)="closeCommentBox()">✕</button>
     </div>
+
     <div class="modal-body">
       <div class="comment-list-wrap">
-        <div class="no-comments" *ngIf="commentaires.length === 0">
+
+        <!-- Spinner chargement -->
+        <div class="loading-comments" *ngIf="loadingComments">
+          <div class="spinner-small"></div>
+          Chargement des commentaires...
+        </div>
+
+        <!-- Aucun commentaire -->
+        <div class="no-comments"
+             *ngIf="!loadingComments && commentaires.length === 0">
           Aucun commentaire pour ce ticket.
         </div>
-        <div class="comment-item" *ngFor="let c of commentaires">
-          <div class="comment-avatar">
-            {{ getInitials(c.nomAuteur || c.username || c.utilisateur?.nom || 'U') }}
-          </div>
-          <div class="comment-content">
-            <div class="comment-meta">
-              {{ c.nomAuteur || c.username || c.utilisateur?.nom || 'Tunisie Telecom' }}
+
+        <!-- ✅ Liste commentaires avec auteur + date + texte -->
+        <ng-container *ngIf="!loadingComments">
+          <div class="comment-item" *ngFor="let c of commentaires">
+
+            <!-- Avatar avec initiales -->
+            <div class="comment-avatar">
+              <ng-container *ngIf="c.auteurPrenom || c.auteurNom; else fallbackInitials">
+                {{ getInitialesCommentaire(c.auteurPrenom || '', c.auteurNom || '') }}
+              </ng-container>
+              <ng-template #fallbackInitials>
+                {{ getInitials(c.nomAuteur || c.username || c.utilisateur?.nom || 'U') }}
+              </ng-template>
             </div>
-            <div class="comment-text">{{ c.commentaire }}</div>
+
+            <div class="comment-content">
+              <!-- En-tête : nom auteur + date -->
+              <div class="comment-meta">
+                <span class="comment-meta-author">
+                  {{ getCommentAuteur(c) }}
+                </span>
+                <span class="comment-meta-date" *ngIf="c.dateCreation">
+                  {{ c.dateCreation | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+              </div>
+              <!-- Texte du commentaire -->
+              <div class="comment-text">{{ c.commentaire || c.contenu || '—' }}</div>
+            </div>
+
+            <!-- Bouton suppression (admin uniquement) -->
+            <button
+              *ngIf="isAdmin()"
+              class="comment-del"
+              title="Supprimer"
+              (click)="deleteComment(c.id)">✕</button>
+
           </div>
-          <button *ngIf="isAdmin()" class="comment-del" title="Supprimer" (click)="deleteComment(c.id)">✕</button>
-        </div>
+        </ng-container>
+
       </div>
+
+      <!-- Zone de saisie nouveau commentaire -->
       <div class="comment-input-row">
         <input
           type="text"
           placeholder="Ajouter un commentaire..."
           [(ngModel)]="commentText"
-          (keyup.enter)="addComment()">
-        <button class="btn btn-primary" (click)="addComment()">Envoyer</button>
+          (keyup.enter)="addComment()"
+          [disabled]="loadingComments">
+        <button
+          class="btn btn-primary"
+          (click)="addComment()"
+          [disabled]="loadingComments || !commentText.trim()">
+          Envoyer
+        </button>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -430,7 +479,6 @@
       </div>
 
       <div class="form-grid">
-
         <div class="form-row">
           <label class="form-label">Priorité</label>
           <div class="view-field">
@@ -456,7 +504,6 @@
                  [value]="viewingTicket.dateSouhaite || ''"
                  disabled>
         </div>
-
       </div>
 
       <div class="form-row" *ngIf="!isMetier() && viewingTicket.userNomComplet">
@@ -472,7 +519,8 @@
       <div class="form-row">
         <label class="form-label">Commentaires</label>
         <div class="view-field">
-          <button class="comment-btn" (click)="closeViewModal(); openCommentBox(viewingTicket.id!)">
+          <button class="comment-btn"
+                  (click)="closeViewModal(); openCommentBox(viewingTicket.id!)">
             💬 {{ viewingTicket.nombreCommentaires || 0 }} commentaire(s) — cliquer pour voir
           </button>
         </div>

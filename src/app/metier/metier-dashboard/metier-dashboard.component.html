@@ -1,39 +1,46 @@
 <div class="app-root">
 
-  <!-- TOPBAR -->
-  <header class="topbar">
+  <!-- ═══ TOPBAR ═══════════════════════════════════════════ -->
+  <div class="topbar">
     <div class="topbar-left">
       <span class="brand">Ticket<span>Flow</span></span>
       <div class="breadcrumb">
-        <span>Tunisie Telecom</span>
-        <span>›</span>
+        <span>/</span>
         <span class="cur">{{ getCurrentTitle() }}</span>
       </div>
     </div>
 
     <div class="topbar-right">
-      <div class="dot-online"></div>
 
-      <!-- 🔔 Notification Bell -->
-<app-notification-bell (openChat)="openChatFromNotif($event)"></app-notification-bell>      <button class="chat-trigger-btn" (click)="chatPanelOpen = true" title="Ouvrir le chat">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+      <!-- Notification Bell -->
+      <app-notification-bell
+        (openChat)="openChatFromNotif($event)"
+        (openComment)="openTicketCommentaires($event)">
+      </app-notification-bell>
+
+      <!-- Chat toggle button -->
+      <div class="chat-trigger-btn" (click)="toggleChat()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
           <path d="M14 10a2 2 0 0 1-2 2H5l-3 3V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6z"/>
         </svg>
         @if (unreadCount > 0) {
           <span class="topbar-badge">{{ unreadCount }}</span>
         }
-      </button>
+      </div>
 
+      <!-- User pill -->
       <div class="user-pill-wrapper">
         <div class="user-pill" (click)="toggleDropdown()">
           <div class="user-avatar">
-            <img [src]="currentUser?.avatarUrl || defaultAvatar" alt="Avatar" class="avatar-img">
+            <img class="avatar-img"
+                 [src]="currentUser?.photoUrl || defaultAvatar"
+                 alt="avatar"/>
           </div>
           <div class="user-info">
             <span class="user-name">{{ currentUser?.prenom }} {{ currentUser?.nom }}</span>
-            <span class="user-role">{{ currentUser?.poste }}</span>
+            <span class="user-role">Métier</span>
           </div>
-          <svg class="chevron" [class.open]="dropdownOpen"
+          <svg class="chevron" width="16" height="16" [class.open]="dropdownOpen"
                viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="4 6 8 10 12 6"/>
           </svg>
@@ -43,7 +50,7 @@
           <div class="dropdown-menu">
             <div class="dropdown-header">
               <div class="dh-avatar">
-                <img [src]="currentUser?.avatarUrl || defaultAvatar" alt="Avatar">
+                <img [src]="currentUser?.photoUrl || defaultAvatar" alt="avatar"/>
               </div>
               <div>
                 <div class="dh-name">{{ currentUser?.prenom }} {{ currentUser?.nom }}</div>
@@ -52,18 +59,15 @@
             </div>
             <div class="dropdown-divider"></div>
             <div class="dropdown-item" (click)="goToProfile()">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-                <path d="M14 14a6 6 0 0 0-12 0"/>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="8" cy="6" r="3"/>
+                <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
               </svg>
-              Mon Profil
+              Mon profil
             </div>
-            <div class="dropdown-divider"></div>
             <div class="dropdown-item logout" (click)="logout()">
-              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>
-                <polyline points="10 11 14 8 10 5"/>
-                <line x1="14" y1="8" x2="6" y2="8"/>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+                <path d="M6 2H3a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3M11 11l3-3-3-3M14 8H6"/>
               </svg>
               Déconnexion
             </div>
@@ -71,17 +75,19 @@
         }
       </div>
     </div>
-  </header>
+  </div>
 
+  <!-- ═══ MAIN LAYOUT ══════════════════════════════════════ -->
   <div class="main-layout">
 
-    <!-- SIDEBAR -->
+    <!-- ── Sidebar ── -->
     <aside class="sidebar">
-      <div class="sidebar-section">Gestion de Projet</div>
+      <span class="sidebar-section">Navigation</span>
 
       <div class="nav-item" [class.active]="view === 'create'" (click)="view = 'create'">
-        <svg class="nav-svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
-          <rect x="2" y="2" width="12" height="12" rx="2"/>
+        <svg class="nav-svg" width="16" height="16" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.7">
+          <circle cx="8" cy="8" r="6"/>
           <line x1="8" y1="5" x2="8" y2="11"/>
           <line x1="5" y1="8" x2="11" y2="8"/>
         </svg>
@@ -89,73 +95,81 @@
       </div>
 
       <div class="nav-item" [class.active]="view === 'list'" (click)="goToList()">
-        <svg class="nav-svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
-          <rect x="2" y="2" width="12" height="12" rx="2"/>
-          <line x1="5" y1="5" x2="11" y2="5"/>
-          <line x1="5" y1="8" x2="11" y2="8"/>
-          <line x1="5" y1="11" x2="9" y2="11"/>
+        <svg class="nav-svg" width="16" height="16" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.7">
+          <line x1="3" y1="4" x2="13" y2="4"/>
+          <line x1="3" y1="8" x2="13" y2="8"/>
+          <line x1="3" y1="12" x2="13" y2="12"/>
         </svg>
         Mes Tickets
+        @if (mesTickets.length > 0) {
+          <span class="nav-badge">{{ mesTickets.length }}</span>
+        }
       </div>
 
       <div class="nav-item" [class.active]="view === 'profile'" (click)="goToProfile()">
-        <svg class="nav-svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-          <path d="M14 14a6 6 0 0 0-12 0"/>
+        <svg class="nav-svg" width="16" height="16" viewBox="0 0 16 16" fill="none"
+             stroke="currentColor" stroke-width="1.7">
+          <circle cx="8" cy="6" r="3"/>
+          <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
         </svg>
         Mon Profil
       </div>
     </aside>
 
-    <!-- CONTENT -->
-    <div class="content" [class.content--shifted]="chatPanelOpen">
+    <!-- ── Content ── -->
+    <main class="content" [class.content--shifted]="chatPanelOpen">
 
       @if (view === 'create') {
         <app-add-ticket (ticketCreated)="onTicketCreated()"></app-add-ticket>
       }
 
       @if (view === 'list') {
-        <app-listeticket [reloadKey]="listKey"></app-listeticket>
+        <app-listeticket
+          [key]="listKey"
+          (openTicketDetail)="openTicketModal($event)"
+          (openChat)="openChat($event.id, $event.titre)">
+        </app-listeticket>
       }
 
       @if (view === 'profile') {
         <app-profile></app-profile>
       }
 
-    </div>
-
+    </main>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       CHAT SIDE PANEL
-  ═══════════════════════════════════════════════ -->
-
+  <!-- ═══ CHAT BACKDROP ════════════════════════════════════ -->
   <div class="chat-backdrop"
        [class.chat-backdrop--visible]="chatPanelOpen"
        (click)="closeChat()">
   </div>
 
-  <aside class="chat-panel" [class.chat-panel--open]="chatPanelOpen">
+  <!-- ═══ CHAT PANEL ═══════════════════════════════════════ -->
+  <div class="chat-panel" [class.chat-panel--open]="chatPanelOpen">
 
     <div class="chat-panel-header">
       <div class="chat-panel-title">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
           <path d="M14 10a2 2 0 0 1-2 2H5l-3 3V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6z"/>
         </svg>
-        <span>Chat Business Analyst</span>
+        {{ selectedTicketTitre || 'Chat' }}
       </div>
-      <button class="chat-panel-close" (click)="closeChat()" title="Fermer">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+      <button class="chat-panel-close" (click)="closeChat()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="4" y1="4" x2="12" y2="12"/>
           <line x1="12" y1="4" x2="4" y2="12"/>
         </svg>
       </button>
     </div>
 
+    <!-- Ticket selector -->
     <div class="chat-panel-selector">
-      <label class="selector-label">Ticket concerné</label>
-      <select class="selector-select" [(ngModel)]="selectedTicketId" (change)="onTicketSelected()">
-        <option [ngValue]="null" disabled>— Choisir un ticket —</option>
+      <label class="selector-label">Ticket</label>
+      <select class="selector-select"
+              [(ngModel)]="selectedTicketId"
+              (change)="onTicketSelected()">
+        <option [ngValue]="null" disabled>Choisir un ticket…</option>
         @for (t of mesTickets; track t.id) {
           <option [ngValue]="t.id">#{{ t.id }} — {{ t.titre }}</option>
         }
@@ -164,19 +178,163 @@
 
     <div class="chat-panel-body">
       @if (selectedTicketId) {
-        <app-chat [ticketId]="safeTicketId"></app-chat>
+        <app-chat
+          [ticketId]="safeTicketId"
+          [currentUserId]="currentUser?.id"
+          [isVisible]="chatPanelOpen"
+          (unreadChange)="unreadCount = $event">
+        </app-chat>
       } @else {
         <div class="chat-panel-empty">
-          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2">
-            <path d="M42 30a4 4 0 0 1-4 4H14L6 42V10a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v20z"/>
-            <line x1="16" y1="18" x2="32" y2="18"/>
-            <line x1="16" y1="24" x2="26" y2="24"/>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
-          <p>Sélectionnez un ticket pour afficher ou démarrer la discussion avec le BA.</p>
+          <p>Sélectionnez un ticket pour démarrer la conversation.</p>
         </div>
       }
     </div>
+  </div>
 
-  </aside>
+  <!-- ═══ MODAL DÉTAIL TICKET ══════════════════════════════ -->
+  @if (modalOpen && selectedTicket) {
+    <div class="modal-backdrop" (click)="closeModal()"></div>
+    <div class="modal-panel">
+
+      <!-- En-tête -->
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <span class="modal-ticket-id">#TK-{{ selectedTicket.id | number:'4.0-0' }}</span>
+          <span class="modal-badge" [class]="getStatutClass(selectedTicket.statut)">
+            <span class="badge-dot"></span>
+            {{ getStatutLabel(selectedTicket.statut) }}
+          </span>
+        </div>
+        <button class="modal-close" (click)="closeModal()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="4" x2="12" y2="12"/>
+            <line x1="12" y1="4" x2="4" y2="12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Corps -->
+      <div class="modal-body">
+
+        <div class="modal-field">
+          <label class="modal-label">TITRE</label>
+          <div class="modal-value">{{ selectedTicket.titre }}</div>
+        </div>
+
+        <div class="modal-field">
+          <label class="modal-label">DESCRIPTION</label>
+          <div class="modal-value modal-desc">{{ selectedTicket.description || '—' }}</div>
+        </div>
+
+        <div class="modal-row">
+          <div class="modal-field">
+            <label class="modal-label">PRIORITÉ</label>
+            <div class="modal-value priorite-badge"
+                 [attr.data-priorite]="selectedTicket.priorite?.toUpperCase()">
+              <span class="priorite-dot"></span>
+              {{ getPrioriteLabel(selectedTicket.priorite) || '—' }}
+            </div>
+          </div>
+          <div class="modal-field">
+            <label class="modal-label">DATE SOUHAITÉE</label>
+            <div class="modal-value">
+              {{ selectedTicket.dateSouhaite
+                  ? (selectedTicket.dateSouhaite | date:'dd/MM/yyyy')
+                  : '—' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ COMMENTAIRES ══════════════════════════════════ -->
+        <div class="modal-field">
+          <label class="modal-label">
+            COMMENTAIRES
+            @if (modalLoadingComments) {
+              <span class="comment-count comment-count--loading">…</span>
+            } @else {
+              <span class="comment-count">({{ modalCommentaires.length }})</span>
+            }
+          </label>
+
+          @if (modalLoadingComments) {
+            <div class="modal-value modal-loading">
+              <span class="loading-dots">
+                <span></span><span></span><span></span>
+              </span>
+              Chargement des commentaires…
+            </div>
+
+          } @else if (modalCommentaires.length === 0) {
+            <div class="modal-comments-empty">Aucun commentaire pour ce ticket.</div>
+
+          } @else {
+            <div class="modal-comments-list">
+              @for (c of modalCommentaires; track c.id) {
+                <div class="modal-comment-item">
+                  <div class="comment-avatar">
+                    {{ getInitialesCommentaire(c.auteurPrenom, c.auteurNom) }}
+                  </div>
+                  <div class="comment-content">
+                    <div class="comment-header">
+                      <span class="comment-author">{{ c.auteurPrenom }} {{ c.auteurNom }}</span>
+                      <span class="comment-date">{{ c.dateCreation | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <!-- ✅ FIX : affiche c.commentaire (champ réel du backend)
+                         avec fallback sur c.contenu si jamais le champ change -->
+                    <div class="comment-text">{{ c.commentaire || c.contenu || '—' }}</div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Zone de saisie d'un nouveau commentaire -->
+          <div class="modal-comment-input">
+            <textarea
+              class="comment-textarea"
+              [(ngModel)]="nouveauCommentaire"
+              placeholder="Écrire un commentaire…"
+              rows="2"
+              (keydown.enter)="$event.preventDefault(); envoyerCommentaire()">
+            </textarea>
+            <button
+              class="btn-send-comment"
+              [disabled]="!nouveauCommentaire.trim() || sendingCommentaire"
+              (click)="envoyerCommentaire()">
+              @if (sendingCommentaire) {
+                <span>Envoi…</span>
+              } @else {
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <line x1="14" y1="2" x2="6" y2="10"/>
+                  <polyline points="14 2 9 14 6 10 2 7 14 2"/>
+                </svg>
+                Envoyer
+              }
+            </button>
+          </div>
+        </div>
+        <!-- ══ FIN COMMENTAIRES ══════════════════════════════ -->
+
+      </div>
+
+      <!-- Pied de modal -->
+      <div class="modal-footer">
+        <button class="btn-fermer" (click)="closeModal()">Fermer</button>
+
+        <button class="btn-modifier"
+                (click)="openChatFromModal(selectedTicket.id, selectedTicket.titre)">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M14 10a2 2 0 0 1-2 2H5l-3 3V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6z"/>
+          </svg>
+          Ouvrir Chat Métier
+        </button>
+      </div>
+
+    </div>
+  }
 
 </div>

@@ -1,6 +1,7 @@
 import {
   Component, Input, OnInit, OnDestroy, Output, EventEmitter,
-  ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef, OnChanges, SimpleChanges
+  ViewChild, ElementRef, AfterViewChecked, ChangeDetectorRef,
+  OnChanges, SimpleChanges
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,6 +23,7 @@ interface MessageGroup {
 export class ChatComponent implements OnInit, OnChanges, OnDestroy, AfterViewChecked {
 
   @Input()  ticketId!: number;
+  @Input()  currentUserId!: number;
   @Input()  isVisible = true;
   @Output() unreadChange = new EventEmitter<number>();
 
@@ -55,33 +57,46 @@ export class ChatComponent implements OnInit, OnChanges, OnDestroy, AfterViewChe
     const stored = localStorage.getItem('currentUser');
     if (stored) this.currentUser = JSON.parse(stored);
 
-    this.chatService.getHistory(this.ticketId).subscribe({
+    this.setupSubscriptions();
+    this.chatService.connect(this.ticketId);
+    this.loadHistory(this.ticketId);
+  }
+
+  private loadHistory(ticketId: number): void {
+    this.isLoading = true;
+    this.chatService.getHistory(ticketId).subscribe({
       next: (msgs) => {
         this.messages = msgs;
         this.rebuildGroups();
-        this.isLoading = false;
+        this.isLoading    = false;
         this.shouldScroll = true;
+        this.cdr.detectChanges();
+        console.log(`📜 [Chat] Historique chargé : ${msgs.length} messages pour ticket ${ticketId}`);
       },
       error: (err) => {
         console.error('Erreur chargement historique :', err);
         this.isLoading = false;
       }
     });
+  }
+
+  private setupSubscriptions(): void {
 
     this.subs.push(
       this.chatService.messages$.subscribe((msg: ChatMessageDTO) => {
+
         const tempIndex = this.messages.findIndex(
           m => m.id < 0 &&
-               m.senderId === msg.senderId &&
+               Number(m.senderId) === Number(msg.senderId) &&
                m.content  === msg.content
         );
+
         if (tempIndex !== -1) {
           this.messages[tempIndex] = msg;
         } else if (!this.messages.some(m => m.id === msg.id)) {
           this.messages.push(msg);
           this.shouldScroll = true;
 
-          // ── Notification si message d'un autre et chat non visible ──
           if (!this.isMine(msg) && !this.isVisible) {
             this.unreadCount++;
             this.unreadChange.emit(this.unreadCount);
@@ -89,6 +104,7 @@ export class ChatComponent implements OnInit, OnChanges, OnDestroy, AfterViewChe
             this.showToast(msg);
           }
         }
+
         this.rebuildGroups();
         this.cdr.detectChanges();
       })
@@ -97,6 +113,9 @@ export class ChatComponent implements OnInit, OnChanges, OnDestroy, AfterViewChe
     this.subs.push(
       this.chatService.connectionStatus$.subscribe(status => {
         this.connectionStatus = status;
+        if (status === 'connected' && this.ticketId) {
+          this.loadHistory(this.ticketId);
+        }
         this.cdr.detectChanges();
       })
     );
@@ -107,35 +126,64 @@ export class ChatComponent implements OnInit, OnChanges, OnDestroy, AfterViewChe
         this.cdr.detectChanges();
       })
     );
+  }
 
-    this.chatService.connect(this.ticketId);
+  ngOnChanges(changes: SimpleChanges): void {
+
+    if (changes['ticketId'] && !changes['ticketId'].firstChange) {
+      this.messages      = [];
+      this.messageGroups = [];
+      this.isLoading     = true;
+      this.shouldScroll  = true;
+      this.showScrollBtn = false;
+      this.typingUsers   = [];
+      this.unreadCount   = 0;
+      this.toastVisible  = false;
+
+      this.chatService.changeTicket(this.ticketId);
+      this.loadHistory(this.ticketId);
+    }
+
+    if (changes['isVisible'] && this.isVisible) {
+      this.markAsRead();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.subs.forEach(s => s.unsubscribe());
+    clearTimeout(this.toastTimer);
+    this.chatService.disconnectTicket();
   }
 
   send(): void {
     if (!this.newMessage.trim()) return;
 
-    const content = this.newMessage.trim();
+    const content   = this.newMessage.trim();
     this.newMessage = '';
+
+    // ✅ Use currentUserId input (reliable) with currentUser as fallback
+    const myId = this.currentUserId ?? this.currentUser?.id;
 
     const localMsg: ChatMessageDTO = {
       id:           -Date.now(),
       ticketId:     this.ticketId,
-      senderId:     this.currentUser.id,
-      senderNom:    this.currentUser.nom,
-      senderPrenom: this.currentUser.prenom,
-      senderRole:   this.currentUser.role,
+      senderId:     myId,
+      senderNom:    this.currentUser?.nom,
+      senderPrenom: this.currentUser?.prenom,
+      senderRole:   this.currentUser?.role,
       content,
       sentAt:       new Date().toISOString()
     };
+
     this.messages.push(localMsg);
     this.rebuildGroups();
     this.shouldScroll = true;
 
     this.chatService.sendMessage(this.ticketId, {
-      senderId:     this.currentUser.id,
-      senderNom:    this.currentUser.nom,
-      senderPrenom: this.currentUser.prenom,
-      senderRole:   this.currentUser.role,
+      senderId:     myId,
+      senderNom:    this.currentUser?.nom,
+      senderPrenom: this.currentUser?.prenom,
+      senderRole:   this.currentUser?.role,
       content
     });
 
@@ -179,8 +227,11 @@ export class ChatComponent implements OnInit, OnChanges, OnDestroy, AfterViewChe
     }
   }
 
+  // ✅ BUG FIX: use currentUserId input + Number() to avoid string vs number mismatch
   isMine(msg: ChatMessageDTO): boolean {
-    return msg.senderId === this.currentUser?.id;
+    const myId = this.currentUserId ?? this.currentUser?.id;
+    if (myId == null || msg.senderId == null) return false;
+    return Number(msg.senderId) === Number(myId);
   }
 
   isPending(msg: ChatMessageDTO): boolean {
@@ -205,13 +256,15 @@ export class ChatComponent implements OnInit, OnChanges, OnDestroy, AfterViewChe
   }
 
   formatDate(dateStr: string): string {
-    const d = new Date(dateStr);
+    const d         = new Date(dateStr);
     const today     = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
     if (d.toDateString() === today.toDateString())     return "Aujourd'hui";
     if (d.toDateString() === yesterday.toDateString()) return 'Hier';
-    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    return d.toLocaleDateString('fr-FR', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    });
   }
 
   getStatusLabel(): string {
@@ -269,7 +322,7 @@ export class ChatComponent implements OnInit, OnChanges, OnDestroy, AfterViewChe
       map.get(key)!.push(msg);
     }
     this.messageGroups = Array.from(map.entries()).map(([, msgs]) => ({
-      date: msgs[0].sentAt,
+      date:     msgs[0].sentAt,
       messages: msgs
     }));
   }
@@ -279,52 +332,10 @@ export class ChatComponent implements OnInit, OnChanges, OnDestroy, AfterViewChe
       try {
         const el = this.scrollContainer?.nativeElement;
         if (el) {
-          el.scrollTop = el.scrollHeight;
+          el.scrollTop      = el.scrollHeight;
           this.shouldScroll = false;
         }
       } catch {}
     }
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['ticketId'] && !changes['ticketId'].firstChange) {
-      this.messages      = [];
-      this.messageGroups = [];
-      this.isLoading     = true;
-      this.shouldScroll  = true;
-      this.showScrollBtn = false;
-      this.typingUsers   = [];
-      this.unreadCount   = 0;
-      this.toastVisible  = false;
-
-      this.chatService.disconnect();
-
-      this.chatService.getHistory(this.ticketId).subscribe({
-        next: (msgs) => {
-          this.messages = msgs;
-          this.rebuildGroups();
-          this.isLoading    = false;
-          this.shouldScroll = true;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Erreur chargement historique :', err);
-          this.isLoading = false;
-        }
-      });
-
-      this.chatService.connect(this.ticketId);
-    }
-
-    // Quand le chat devient visible, reset unread
-    if (changes['isVisible'] && this.isVisible) {
-      this.markAsRead();
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.subs.forEach(s => s.unsubscribe());
-    clearTimeout(this.toastTimer);
-    this.chatService.disconnect();
   }
 }

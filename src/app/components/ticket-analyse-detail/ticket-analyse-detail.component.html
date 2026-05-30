@@ -121,10 +121,7 @@
             <span>Chargement des tâches…</span>
           </div>
 
-          <!-- Aucune tâche -->
-          <div class="no-tache" *ngIf="tachesMap[st.id]?.length === 0">
-            <p>Aucune tâche générée pour ce sous-ticket.</p>
-          </div>
+          
 
           <!-- Liste tâches -->
           <div class="taches-list" *ngIf="tachesMap[st.id]?.length > 0">

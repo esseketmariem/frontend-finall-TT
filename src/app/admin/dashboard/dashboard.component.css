@@ -276,3 +276,88 @@ tr:hover td { background: var(--c2); }
 .empty-sub { font-size: 12px; color: var(--text3); }
 .btn-reset-filter { margin-top: 12px; padding: 7px 18px; border-radius: 8px; border: 1px solid rgba(124,58,237,0.35); background: var(--accent-soft); color: var(--accent-light); font-size: 13px; cursor: pointer; transition: background .15s; }
 .btn-reset-filter:hover { background: rgba(124,58,237,0.22); }
+/* ── Modal ── */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+}
+
+.modal-panel {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 201;
+  background: var(--c1);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  width: 520px; max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+}
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-header-left { display: flex; align-items: center; gap: 12px; }
+.modal-ticket-id   { font-size: 13px; color: var(--text3); font-family: monospace; }
+.modal-close {
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); padding: 4px; border-radius: 6px;
+  display: flex; align-items: center; transition: all .15s;
+}
+.modal-close svg { width: 16px; height: 16px; }
+.modal-close:hover { background: var(--c3); color: var(--text1); }
+
+.modal-body  { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.modal-field { display: flex; flex-direction: column; gap: 6px; }
+.modal-row   { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.modal-label {
+  font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--text3); font-weight: 600;
+}
+.modal-value {
+  background: var(--c2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px;
+  font-size: 13px; color: var(--text2); line-height: 1.5;
+}
+.modal-desc    { min-height: 80px; white-space: pre-wrap; }
+.modal-loading { color: var(--text3); font-style: italic; }
+
+.modal-comments-box {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--c2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 14px;
+  font-size: 13px; color: var(--text3);
+}
+.modal-comments-box svg { width: 14px; height: 14px; }
+
+.modal-footer {
+  display: flex; justify-content: flex-end;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border);
+}
+.btn-fermer {
+  padding: 8px 20px; border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: transparent; color: var(--text2);
+  font-size: 13px; cursor: pointer; transition: all .15s;
+}
+.btn-fermer:hover { background: var(--c3); color: var(--text1); }
+
+/* Badges statut modal */
+.modal-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 4px;
+  font-size: 11px; font-weight: 600; letter-spacing: .04em;
+}
+.badge-encours  { background: rgba(240,180,41,.1);  color: #f0b429; border: 1px solid rgba(240,180,41,.25); }
+.badge-analysis { background: rgba(99,102,241,.1);  color: #818cf8; border: 1px solid rgba(99,102,241,.25); }
+.badge-analyzed { background: rgba(34,211,238,.1);  color: #22d3ee; border: 1px solid rgba(34,211,238,.25); }
+.badge-approuve { background: rgba(61,176,122,.1);  color: #3db07a; border: 1px solid rgba(61,176,122,.25); }
+.badge-rejete   { background: rgba(224,85,85,.1);   color: #e05555; border: 1px solid rgba(224,85,85,.25); }

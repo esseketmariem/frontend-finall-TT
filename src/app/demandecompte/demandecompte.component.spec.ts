@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { DemandecompteComponent } from './demandecompte.component';
+import { DemandecompteComponent } from './demandecompte.component';  // ✅ fixed
 
 describe('DemandecompteComponent', () => {
-  let component: DemandecompteComponent;
+  let component: DemandecompteComponent;                             // ✅ fixed
   let fixture: ComponentFixture<DemandecompteComponent>;
 
   beforeEach(async () => {

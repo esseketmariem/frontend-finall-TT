@@ -141,8 +141,7 @@
               Tous les tickets
             </div>
             <div class="page-sub">
-              {{ filteredTickets.length }} ticket{{ filteredTickets.length !== 1 ? 's' : '' }}
-              {{ activeFilter !== 'tous' ? '· filtrés' : 'au total' }}
+              {{ filteredTickets.length }} ticket{{ filteredTickets.length !== 1 ? 's' : '' }} au total
             </div>
           </div>
         </div>
@@ -162,56 +161,6 @@
             </div>
             <div class="kpi-trend kpi-trend-up">↑ actif</div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-icon kpi-icon-todo">
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
-                <circle cx="10" cy="10" r="7"/>
-                <line x1="10" y1="6.5" x2="10" y2="10.5"/>
-                <circle cx="10" cy="13" r=".6" fill="currentColor"/>
-              </svg>
-            </div>
-            <div class="kpi-body">
-              <div class="kpi-val kpi-todo">{{ ticketsAfaire }}</div>
-              <div class="kpi-label">À faire</div>
-            </div>
-            <div class="kpi-bar">
-              <div class="kpi-bar-fill kpi-bar-todo"
-                   [style.width.%]="totalTickets ? (ticketsAfaire/totalTickets*100) : 0"></div>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-icon kpi-icon-done">
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
-                <circle cx="10" cy="10" r="7"/>
-                <polyline points="7,10 9.5,12.5 13,8"/>
-              </svg>
-            </div>
-            <div class="kpi-body">
-              <div class="kpi-val kpi-done">{{ ticketsApprouves }}</div>
-              <div class="kpi-label">Approuvés</div>
-            </div>
-            <div class="kpi-bar">
-              <div class="kpi-bar-fill kpi-bar-done"
-                   [style.width.%]="totalTickets ? (ticketsApprouves/totalTickets*100) : 0"></div>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-icon kpi-icon-danger">
-              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6">
-                <circle cx="10" cy="10" r="7"/>
-                <line x1="7.5" y1="7.5" x2="12.5" y2="12.5"/>
-                <line x1="12.5" y1="7.5" x2="7.5" y2="12.5"/>
-              </svg>
-            </div>
-            <div class="kpi-body">
-              <div class="kpi-val kpi-danger">{{ ticketsRejetes }}</div>
-              <div class="kpi-label">Rejetés</div>
-            </div>
-            <div class="kpi-bar">
-              <div class="kpi-bar-fill kpi-bar-danger"
-                   [style.width.%]="totalTickets ? (ticketsRejetes/totalTickets*100) : 0"></div>
-            </div>
-          </div>
         </div>
 
         <div class="table-toolbar">
@@ -227,20 +176,6 @@
                 [(ngModel)]="searchQuery"
                 class="search-input" />
               <button *ngIf="searchQuery" class="search-clear" (click)="searchQuery=''">✕</button>
-            </div>
-          </div>
-          <div class="toolbar-right">
-            <div class="filter-chip" [class.active]="activeFilter==='tous'" (click)="setFilter('tous')">
-              Tous <span class="chip-count">{{ totalTickets }}</span>
-            </div>
-            <div class="filter-chip" [class.active]="activeFilter==='A_faire'" (click)="setFilter('A_faire')">
-              À faire <span class="chip-count">{{ ticketsAfaire }}</span>
-            </div>
-            <div class="filter-chip" [class.active]="activeFilter==='Approuvé'" (click)="setFilter('Approuvé')">
-              Approuvés <span class="chip-count">{{ ticketsApprouves }}</span>
-            </div>
-            <div class="filter-chip" [class.active]="activeFilter==='Rejeté'" (click)="setFilter('Rejeté')">
-              Rejetés <span class="chip-count">{{ ticketsRejetes }}</span>
             </div>
           </div>
         </div>
@@ -271,10 +206,8 @@
             <div class="empty-sub">
               {{ searchQuery ? 'Aucun résultat pour « ' + searchQuery + ' »' : 'Les tickets apparaîtront ici une fois créés' }}
             </div>
-            <button *ngIf="searchQuery || activeFilter !== 'tous'"
-                    class="btn-reset-filter"
-                    (click)="searchQuery=''; activeFilter='tous'">
-              Réinitialiser les filtres
+            <button *ngIf="searchQuery" class="btn-reset-filter" (click)="searchQuery=''">
+              Effacer la recherche
             </button>
           </div>
 
@@ -291,7 +224,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let t of filteredTickets" class="tr-row">
+              <tr *ngFor="let t of filteredTickets"
+                  class="tr-row"
+                  (click)="openTicketModal(t)"
+                  style="cursor:pointer">
                 <td><span class="ticket-id">#{{ t.id }}</span></td>
                 <td class="td-titre">{{ t.titre }}</td>
                 <td>
@@ -508,4 +444,91 @@
 
     </main>
   </div>
+
+  <!-- ═══════════════════════════════════════════
+       MODAL DÉTAIL TICKET
+  ═══════════════════════════════════════════════ -->
+  <ng-container *ngIf="modalOpen && selectedTicket">
+    <div class="modal-backdrop" (click)="closeModal()"></div>
+
+    <div class="modal-panel">
+
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <span class="modal-ticket-id">#TK-{{ selectedTicket.id }}</span>
+          <span class="modal-badge" [class]="getStatutModalClass(selectedTicket.statut)">
+            <span class="badge-dot"></span>
+            {{ getStatutModalLabel(selectedTicket.statut) }}
+          </span>
+        </div>
+        <button class="modal-close" (click)="closeModal()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="4" x2="12" y2="12"/>
+            <line x1="12" y1="4" x2="4" y2="12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="modal-field">
+          <label class="modal-label">TITRE</label>
+          <div class="modal-value">{{ selectedTicket.titre }}</div>
+        </div>
+
+        <div class="modal-field">
+          <label class="modal-label">DESCRIPTION</label>
+          <div class="modal-value modal-desc">{{ selectedTicket.description || '—' }}</div>
+        </div>
+
+        <div class="modal-row">
+          <div class="modal-field">
+            <label class="modal-label">PRIORITÉ</label>
+            <div class="modal-value">{{ getPrioriteModalLabel(selectedTicket.priorite) }}</div>
+          </div>
+          <div class="modal-field">
+            <label class="modal-label">DATE SOUHAITÉE</label>
+            <div class="modal-value">
+              {{ selectedTicket.dateSouhaite ? (selectedTicket.dateSouhaite | date:'dd/MM/yyyy') : '—' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-row">
+          <div class="modal-field">
+            <label class="modal-label">CRÉÉ LE</label>
+            <div class="modal-value">
+              {{ selectedTicket.dateCreation ? (selectedTicket.dateCreation | date:'dd/MM/yyyy') : '—' }}
+            </div>
+          </div>
+          <div class="modal-field">
+            <label class="modal-label">CRÉÉ PAR</label>
+            <div class="modal-value">{{ selectedTicket.userNomComplet || '—' }}</div>
+          </div>
+        </div>
+
+        <div class="modal-field">
+          <label class="modal-label">COMMENTAIRES</label>
+          <ng-container *ngIf="modalLoadingComments">
+            <div class="modal-value modal-loading">Chargement…</div>
+          </ng-container>
+          <ng-container *ngIf="!modalLoadingComments">
+            <div class="modal-comments-box">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6">
+                <path d="M14 10a2 2 0 0 1-2 2H5l-3 3V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6z"/>
+              </svg>
+              {{ modalCommentaires.length }} commentaire(s)
+            </div>
+          </ng-container>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-fermer" (click)="closeModal()">Fermer</button>
+      </div>
+
+    </div>
+  </ng-container>
+
 </div>

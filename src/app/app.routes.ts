@@ -62,4 +62,4 @@ export const routes: Routes = [
   },
 
   { path: '**', redirectTo: 'login' }
-];
+]
