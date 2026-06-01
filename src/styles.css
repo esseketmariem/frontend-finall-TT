@@ -1,16 +1,13 @@
-/* À ajouter dans votre styles.css global */
-
 html, body {
   margin: 0;
   padding: 0;
-  background: #09090d;   /* même que --bg-page */
+  background: #ffffff;
   min-height: 100vh;
   font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
-/* Évite le flash blanc sur les routes lazy-loaded */
 app-root {
   display: block;
-  background: #09090d;
+  background: #ffffff;
   min-height: 100vh;
 }

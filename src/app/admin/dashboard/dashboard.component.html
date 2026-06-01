@@ -51,10 +51,8 @@
       <div class="sidebar-logo-area">
         <div class="sidebar-section-label">Navigation</div>
       </div>
-
       <nav class="sidebar-nav">
-        <div class="nav-item" [class.active]="activeView==='users'"
-             (click)="activeView='users'">
+        <div class="nav-item" [class.active]="activeView==='users'" (click)="activeView='users'">
           <div class="nav-icon-wrap">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
               <circle cx="8" cy="5" r="3"/>
@@ -64,23 +62,19 @@
           <span class="nav-label">Utilisateurs</span>
           <span class="nav-indicator" *ngIf="activeView==='users'"></span>
         </div>
-
-        <div class="nav-item" [class.active]="activeView==='tickets'"
-             (click)="activeView='tickets'; loadTickets()">
+        <div class="nav-item" [class.active]="activeView==='tickets'" (click)="activeView='tickets'; loadTickets()">
           <div class="nav-icon-wrap">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
               <rect x="2" y="2" width="12" height="12" rx="2"/>
               <line x1="5" y1="5" x2="11" y2="5"/>
-              <line x1="5" y1="8" x2="9"  y2="8"/>
+              <line x1="5" y1="8" x2="9" y2="8"/>
             </svg>
           </div>
           <span class="nav-label">Tickets</span>
           <span class="nav-badge" *ngIf="totalTickets > 0">{{ totalTickets }}</span>
           <span class="nav-indicator" *ngIf="activeView==='tickets'"></span>
         </div>
-
-        <div class="nav-item" [class.active]="activeView==='stats'"
-             (click)="activeView='stats'; loadTickets()">
+        <div class="nav-item" [class.active]="activeView==='stats'" (click)="activeView='stats'; loadTickets(); loadUsers()">
           <div class="nav-icon-wrap">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
               <polyline points="1,12 5,6 9,9 13,3 15,5"/>
@@ -89,8 +83,20 @@
           <span class="nav-label">Statistiques</span>
           <span class="nav-indicator" *ngIf="activeView==='stats'"></span>
         </div>
-      </nav>
 
+        <!-- ✅ AJOUT : Mon Profil -->
+        <div class="nav-item" [class.active]="activeView==='profile'" (click)="activeView='profile'">
+          <div class="nav-icon-wrap">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="8" cy="6" r="3"/>
+              <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+            </svg>
+          </div>
+          <span class="nav-label">Mon Profil</span>
+          <span class="nav-indicator" *ngIf="activeView==='profile'"></span>
+        </div>
+
+      </nav>
       <div class="sidebar-footer">
         <div class="nav-item logout-item" (click)="logout()">
           <div class="nav-icon-wrap">
@@ -145,7 +151,6 @@
             </div>
           </div>
         </div>
-
         <div class="kpi-row">
           <div class="kpi-card">
             <div class="kpi-icon kpi-icon-neutral">
@@ -162,7 +167,6 @@
             <div class="kpi-trend kpi-trend-up">↑ actif</div>
           </div>
         </div>
-
         <div class="table-toolbar">
           <div class="toolbar-left">
             <div class="search-box">
@@ -170,21 +174,15 @@
                 <circle cx="6.5" cy="6.5" r="4.5"/>
                 <line x1="10" y1="10" x2="14" y2="14"/>
               </svg>
-              <input
-                type="text"
-                placeholder="Rechercher par titre, ID, priorité…"
-                [(ngModel)]="searchQuery"
-                class="search-input" />
+              <input type="text" placeholder="Rechercher par titre, ID, priorité…" [(ngModel)]="searchQuery" class="search-input"/>
               <button *ngIf="searchQuery" class="search-clear" (click)="searchQuery=''">✕</button>
             </div>
           </div>
         </div>
-
         <div class="loading-state" *ngIf="isLoading">
           <div class="spinner"></div>
           <span>Chargement des tickets…</span>
         </div>
-
         <div class="error-state" *ngIf="!isLoading && errorMessage">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="12" cy="12" r="9"/>
@@ -193,7 +191,6 @@
           </svg>
           {{ errorMessage }}
         </div>
-
         <div class="table-wrap" *ngIf="!isLoading && !errorMessage">
           <div class="empty-state" *ngIf="filteredTickets.length === 0">
             <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2" class="empty-icon-svg">
@@ -206,11 +203,8 @@
             <div class="empty-sub">
               {{ searchQuery ? 'Aucun résultat pour « ' + searchQuery + ' »' : 'Les tickets apparaîtront ici une fois créés' }}
             </div>
-            <button *ngIf="searchQuery" class="btn-reset-filter" (click)="searchQuery=''">
-              Effacer la recherche
-            </button>
+            <button *ngIf="searchQuery" class="btn-reset-filter" (click)="searchQuery=''">Effacer la recherche</button>
           </div>
-
           <table *ngIf="filteredTickets.length > 0">
             <thead>
               <tr>
@@ -224,10 +218,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let t of filteredTickets"
-                  class="tr-row"
-                  (click)="openTicketModal(t)"
-                  style="cursor:pointer">
+              <tr *ngFor="let t of filteredTickets" class="tr-row" (click)="openTicketModal(t)" style="cursor:pointer">
                 <td><span class="ticket-id">#{{ t.id }}</span></td>
                 <td class="td-titre">{{ t.titre }}</td>
                 <td>
@@ -242,8 +233,8 @@
                     {{ getStatutLabel(t.statut) }}
                   </span>
                 </td>
-                <td class="td-date">{{ t.dateCreation  | date:'dd/MM/yyyy' }}</td>
-                <td class="td-date">{{ t.dateSouhaite  ? (t.dateSouhaite  | date:'dd/MM/yyyy') : '—' }}</td>
+                <td class="td-date">{{ t.dateCreation | date:'dd/MM/yyyy' }}</td>
+                <td class="td-date">{{ t.dateSouhaite ? (t.dateSouhaite | date:'dd/MM/yyyy') : '—' }}</td>
                 <td class="td-date">{{ t.dateMiseAJour ? (t.dateMiseAJour | date:'dd/MM/yyyy') : '—' }}</td>
               </tr>
             </tbody>
@@ -263,10 +254,12 @@
               </span>
               Statistiques
             </div>
-            <div class="page-sub">Vue d'ensemble de l'activité tickets en temps réel</div>
+            <div class="page-sub">Vue d'ensemble tickets et utilisateurs en temps réel</div>
           </div>
         </div>
 
+        <!-- KPI TICKETS -->
+        <div class="stats-section-label">Tickets</div>
         <div class="kpi-row">
           <div class="kpi-card">
             <div class="kpi-icon kpi-icon-neutral">
@@ -290,8 +283,8 @@
               </svg>
             </div>
             <div class="kpi-body">
-              <div class="kpi-val kpi-todo">{{ ticketsAfaire }}</div>
-              <div class="kpi-label">À faire</div>
+              <div class="kpi-val kpi-todo">{{ ticketsEnCours }}</div>
+              <div class="kpi-label">En cours</div>
             </div>
           </div>
           <div class="kpi-card">
@@ -332,7 +325,65 @@
           </div>
         </div>
 
-        <div class="charts-grid">
+        <!-- KPI UTILISATEURS -->
+        <div class="stats-section-label" style="margin-top:20px;">Utilisateurs</div>
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:rgba(124,58,237,0.12);">
+              <svg viewBox="0 0 20 20" fill="none" stroke="#a78bfa" stroke-width="1.6">
+                <circle cx="7" cy="6" r="3"/>
+                <path d="M1 17c0-3.3 2.7-6 6-6"/>
+                <circle cx="14" cy="6" r="3"/>
+                <path d="M12 17c0-3.3 2.7-6 6-6" opacity=".5"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val" style="color:#a78bfa;">{{ totalUsers }}</div>
+              <div class="kpi-label">Total utilisateurs</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:rgba(124,58,237,0.12);">
+              <svg viewBox="0 0 20 20" fill="none" stroke="#a78bfa" stroke-width="1.6">
+                <circle cx="10" cy="7" r="4"/>
+                <path d="M3 18c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val" style="color:#a78bfa;">{{ usersMetier }}</div>
+              <div class="kpi-label">Métier</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-done">
+              <svg viewBox="0 0 20 20" fill="none" stroke="#3db07a" stroke-width="1.6">
+                <circle cx="10" cy="7" r="4"/>
+                <path d="M3 18c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val kpi-done">{{ usersBA }}</div>
+              <div class="kpi-label">Analystes BA</div>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-icon-todo">
+              <svg viewBox="0 0 20 20" fill="none" stroke="#f0b429" stroke-width="1.6">
+                <circle cx="10" cy="7" r="4"/>
+                <path d="M3 18c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
+              </svg>
+            </div>
+            <div class="kpi-body">
+              <div class="kpi-val kpi-todo">{{ usersAdmin }}</div>
+              <div class="kpi-label">Admins</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GRAPHIQUES -->
+        <div class="charts-grid" style="margin-top:20px;">
+
+          <!-- Courbe tickets 7 jours -->
           <div class="chart-card chart-wide">
             <div class="chart-header">
               <div class="chart-title">Tickets créés — 7 derniers jours</div>
@@ -341,26 +392,24 @@
             <svg viewBox="0 0 560 140" preserveAspectRatio="none" class="chart-svg">
               <defs>
                 <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#1e3a8a" stop-opacity="0.15"/>
-                  <stop offset="100%" stop-color="#1e3a8a" stop-opacity="0"/>
+                  <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.2"/>
+                  <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
                 </linearGradient>
               </defs>
-              <line x1="20" y1="20"  x2="540" y2="20"  stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
-              <line x1="20" y1="50"  x2="540" y2="50"  stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
-              <line x1="20" y1="80"  x2="540" y2="80"  stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
-              <line x1="20" y1="110" x2="540" y2="110" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
+              <line x1="20" y1="20"  x2="540" y2="20"  stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <line x1="20" y1="50"  x2="540" y2="50"  stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <line x1="20" y1="80"  x2="540" y2="80"  stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+              <line x1="20" y1="110" x2="540" y2="110" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
               <path [attr.d]="lineChart.area" fill="url(#lineGrad)" stroke="none"/>
-              <path [attr.d]="lineChart.path" fill="none" stroke="#1e3a8a" stroke-width="2.5"
-                    stroke-linejoin="round" stroke-linecap="round"/>
-              <circle *ngFor="let dot of lineChart.dots"
-                      [attr.cx]="dot.x" [attr.cy]="dot.y"
-                      r="4.5" fill="#1e3a8a" stroke="#ffffff" stroke-width="2"/>
+              <path [attr.d]="lineChart.path" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+              <circle *ngFor="let dot of lineChart.dots" [attr.cx]="dot.x" [attr.cy]="dot.y" r="4.5" fill="#a78bfa" stroke="#1a1a2e" stroke-width="2"/>
             </svg>
             <div class="chart-labels">
               <span *ngFor="let d of getLast7Days()">{{ d }}</span>
             </div>
           </div>
 
+          <!-- Donut statut tickets -->
           <div class="chart-card">
             <div class="chart-header">
               <div class="chart-title">Répartition par statut</div>
@@ -371,9 +420,9 @@
                   <g *ngFor="let seg of getDonutPath(statutChartData)">
                     <path [attr.d]="seg.d" [attr.fill]="seg.color" opacity="0.9"/>
                   </g>
-                  <circle cx="80" cy="80" r="28" fill="#ffffff"/>
-                  <text x="80" y="76" text-anchor="middle" fill="#1a1d2e" font-size="20" font-weight="600" font-family="'DM Sans',sans-serif">{{ totalTickets }}</text>
-                  <text x="80" y="91" text-anchor="middle" fill="#9298b5" font-size="9" font-family="'DM Sans',sans-serif">tickets</text>
+                  <circle cx="80" cy="80" r="28" fill="#1a1a2e"/>
+                  <text x="80" y="76" text-anchor="middle" fill="#eaecf4" font-size="20" font-weight="600" font-family="'DM Sans',sans-serif">{{ totalTickets }}</text>
+                  <text x="80" y="91" text-anchor="middle" fill="#8b90b8" font-size="9" font-family="'DM Sans',sans-serif">tickets</text>
                 </svg>
               </div>
               <div class="donut-legend">
@@ -386,23 +435,24 @@
             </div>
           </div>
 
+          <!-- Donut utilisateurs par rôle -->
           <div class="chart-card">
             <div class="chart-header">
-              <div class="chart-title">Répartition par priorité</div>
+              <div class="chart-title">Répartition par rôle</div>
             </div>
             <div class="donut-wrap">
               <div class="donut-container">
                 <svg viewBox="0 0 160 160" class="donut-svg">
-                  <g *ngFor="let seg of getDonutPath(prioriteChartData)">
+                  <g *ngFor="let seg of getDonutPath(roleChartData)">
                     <path [attr.d]="seg.d" [attr.fill]="seg.color" opacity="0.9"/>
                   </g>
-                  <circle cx="80" cy="80" r="28" fill="#ffffff"/>
-                  <text x="80" y="76" text-anchor="middle" fill="#1a1d2e" font-size="20" font-weight="600" font-family="'DM Sans',sans-serif">{{ totalTickets }}</text>
-                  <text x="80" y="91" text-anchor="middle" fill="#9298b5" font-size="9" font-family="'DM Sans',sans-serif">tickets</text>
+                  <circle cx="80" cy="80" r="28" fill="#1a1a2e"/>
+                  <text x="80" y="76" text-anchor="middle" fill="#eaecf4" font-size="20" font-weight="600" font-family="'DM Sans',sans-serif">{{ totalUsers }}</text>
+                  <text x="80" y="91" text-anchor="middle" fill="#8b90b8" font-size="9" font-family="'DM Sans',sans-serif">users</text>
                 </svg>
               </div>
               <div class="donut-legend">
-                <div class="legend-item" *ngFor="let seg of getDonutPath(prioriteChartData)">
+                <div class="legend-item" *ngFor="let seg of getDonutPath(roleChartData)">
                   <span class="legend-dot" [style.background]="seg.color"></span>
                   <span class="legend-label">{{ seg.label }}</span>
                   <span class="legend-pct" [style.color]="seg.color">{{ seg.pct }}%</span>
@@ -411,6 +461,7 @@
             </div>
           </div>
 
+          <!-- Barres tickets + utilisateurs -->
           <div class="chart-card chart-wide">
             <div class="chart-header">
               <div class="chart-title">Progression par statut et priorité</div>
@@ -419,9 +470,7 @@
               <div class="bar-row" *ngFor="let item of statutChartData">
                 <span class="bar-label">{{ item.label }}</span>
                 <div class="bar-track">
-                  <div class="bar-fill"
-                       [style.width.%]="totalTickets ? (item.value/totalTickets*100) : 0"
-                       [style.background]="item.color"></div>
+                  <div class="bar-fill" [style.width.%]="totalTickets ? (item.value/totalTickets*100) : 0" [style.background]="item.color"></div>
                 </div>
                 <span class="bar-pct">{{ totalTickets ? (item.value/totalTickets*100 | number:'1.0-0') : 0 }}%</span>
                 <span class="bar-count" [style.color]="item.color">{{ item.value }}</span>
@@ -430,29 +479,38 @@
               <div class="bar-row" *ngFor="let item of prioriteChartData">
                 <span class="bar-label">Priorité {{ item.label }}</span>
                 <div class="bar-track">
-                  <div class="bar-fill"
-                       [style.width.%]="totalTickets ? (item.value/totalTickets*100) : 0"
-                       [style.background]="item.color"></div>
+                  <div class="bar-fill" [style.width.%]="totalTickets ? (item.value/totalTickets*100) : 0" [style.background]="item.color"></div>
                 </div>
                 <span class="bar-pct">{{ totalTickets ? (item.value/totalTickets*100 | number:'1.0-0') : 0 }}%</span>
                 <span class="bar-count" [style.color]="item.color">{{ item.value }}</span>
               </div>
+              <div class="bar-divider"></div>
+              <div class="bar-row" *ngFor="let item of roleChartData">
+                <span class="bar-label">{{ item.label }}</span>
+                <div class="bar-track">
+                  <div class="bar-fill" [style.width.%]="totalUsers ? (item.value/totalUsers*100) : 0" [style.background]="item.color"></div>
+                </div>
+                <span class="bar-pct">{{ totalUsers ? (item.value/totalUsers*100 | number:'1.0-0') : 0 }}%</span>
+                <span class="bar-count" [style.color]="item.color">{{ item.value }}</span>
+              </div>
             </div>
           </div>
+
         </div>
+      </ng-container>
+
+      <!-- ✅ AJOUT : Mon Profil -->
+      <ng-container *ngIf="activeView === 'profile'">
+        <app-profile></app-profile>
       </ng-container>
 
     </main>
   </div>
 
-  <!-- ═══════════════════════════════════════════
-       MODAL DÉTAIL TICKET
-  ═══════════════════════════════════════════════ -->
+  <!-- MODAL DÉTAIL TICKET -->
   <ng-container *ngIf="modalOpen && selectedTicket">
     <div class="modal-backdrop" (click)="closeModal()"></div>
-
     <div class="modal-panel">
-
       <div class="modal-header">
         <div class="modal-header-left">
           <span class="modal-ticket-id">#TK-{{ selectedTicket.id }}</span>
@@ -468,19 +526,15 @@
           </svg>
         </button>
       </div>
-
       <div class="modal-body">
-
         <div class="modal-field">
           <label class="modal-label">TITRE</label>
           <div class="modal-value">{{ selectedTicket.titre }}</div>
         </div>
-
         <div class="modal-field">
           <label class="modal-label">DESCRIPTION</label>
           <div class="modal-value modal-desc">{{ selectedTicket.description || '—' }}</div>
         </div>
-
         <div class="modal-row">
           <div class="modal-field">
             <label class="modal-label">PRIORITÉ</label>
@@ -493,7 +547,6 @@
             </div>
           </div>
         </div>
-
         <div class="modal-row">
           <div class="modal-field">
             <label class="modal-label">CRÉÉ LE</label>
@@ -506,7 +559,6 @@
             <div class="modal-value">{{ selectedTicket.userNomComplet || '—' }}</div>
           </div>
         </div>
-
         <div class="modal-field">
           <label class="modal-label">COMMENTAIRES</label>
           <ng-container *ngIf="modalLoadingComments">
@@ -521,13 +573,10 @@
             </div>
           </ng-container>
         </div>
-
       </div>
-
       <div class="modal-footer">
         <button class="btn-fermer" (click)="closeModal()">Fermer</button>
       </div>
-
     </div>
   </ng-container>
 

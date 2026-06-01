@@ -11,6 +11,7 @@ import { ChatComponent }             from '../../shared/chat/chat.component';
 import { NotificationBellComponent } from '../../components/notification-bell/notification-bell.component';
 import { NotificationService }       from '../../services/notification.service';
 
+
 interface SousTicketSimple {
   id: number;
   titre: string;
@@ -455,6 +456,7 @@ export class AnalyseDashboardComponent implements OnInit, OnDestroy {
     });
   }
 
+
   // ── Commentaires ──────────────────────────────────────────────────────────
 
   ouvrirCommentaires(ticket: Ticket, event: Event): void {
@@ -552,4 +554,9 @@ export class AnalyseDashboardComponent implements OnInit, OnDestroy {
     if (p === 'LOW'    || p === 'BASSE')   return 'Basse';
     return priorite ?? '—';
   }
+  // après get analyzedTickets()
+get ticketsHaute():   number { return this.tickets.filter(t => ['HAUTE','HIGH'].includes((t.priorite as string)?.toUpperCase())).length; }
+get ticketsMoyenne(): number { return this.tickets.filter(t => ['MOYENNE','MEDIUM'].includes((t.priorite as string)?.toUpperCase())).length; }
+get ticketsBasse():   number { return this.tickets.filter(t => ['BASSE','LOW'].includes((t.priorite as string)?.toUpperCase())).length; }
+get ticketsInAnalysis(): number { return this.tickets.filter(t => t.statut === 'IN_ANALYSIS').length; }
 }

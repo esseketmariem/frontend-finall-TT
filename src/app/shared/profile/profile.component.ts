@@ -33,11 +33,11 @@ export class ProfileComponent implements OnInit {
     this.profileService.getProfile().subscribe({
       next: (user: any) => {
         this.profile  = { ...user };
-        this.formData = { ...user };   // FIX 4 : toujours synced dès le chargement
+        this.formData = { ...user };
       },
       error: () => {
         this.showError('Impossible de charger le profil.');
-        this.formData = { ...this.profile }; // FIX 4 : formData jamais vide
+        this.formData = { ...this.profile };
       }
     });
   }
@@ -62,8 +62,8 @@ export class ProfileComponent implements OnInit {
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
-      this.formData.avatarUrl = result;  // preview immédiat
-      this.profile.avatarUrl  = result;  // FIX 2 : synced pour affichage
+      this.formData.avatarUrl = result;
+      this.profile.avatarUrl  = result;
     };
     reader.readAsDataURL(file);
   }
@@ -88,11 +88,19 @@ export class ProfileComponent implements OnInit {
 
     this.profileService.updateProfile(payload).subscribe({
       next: (updated: any) => {
-        this.profile  = { ...this.profile,  ...updated };  // FIX 1 : garde email/equipe/dateNaissance
-        this.formData = { ...this.profile };               // FIX 1 : resync formData
-        if (updated.avatarUrl) localStorage.setItem('avatarUrl', updated.avatarUrl);
-        if (updated.prenom)    localStorage.setItem('prenom',    updated.prenom);
-        if (updated.nom)       localStorage.setItem('nom',       updated.nom);
+        this.profile  = { ...this.profile, ...updated };  // garde email/equipe/dateNaissance
+        this.formData = { ...this.profile };               // resync formData
+
+        // ✅ Supprime ou met à jour l'avatar dans localStorage
+        if (updated.avatarUrl) {
+          localStorage.setItem('avatarUrl', updated.avatarUrl);
+        } else {
+          localStorage.removeItem('avatarUrl');  // suppression effective si avatar retiré
+        }
+
+        if (updated.prenom) localStorage.setItem('prenom', updated.prenom);
+        if (updated.nom)    localStorage.setItem('nom',    updated.nom);
+
         this.showSuccess('Profil mis à jour avec succès !');
       },
       error: (err: any) => {
@@ -110,7 +118,7 @@ export class ProfileComponent implements OnInit {
 
   closePasswordModal(): void {
     this.showPasswordModal = false;
-    this.passwordForm = { current: '', nouveau: '', confirm: '' }; // FIX 3 : reset aussi à la fermeture
+    this.passwordForm = { current: '', nouveau: '', confirm: '' };
   }
 
   onChangePassword(): void {
@@ -135,7 +143,6 @@ export class ProfileComponent implements OnInit {
       error: (err: any) => {
         console.error('Erreur changement mot de passe:', err);
         this.showError('Mot de passe actuel incorrect.');
-        // FIX 3 : on vide uniquement le champ current pour forcer une nouvelle saisie
         this.passwordForm.current = '';
       }
     });
@@ -143,6 +150,12 @@ export class ProfileComponent implements OnInit {
 
   togglePasswordVisibility(field: 'current' | 'nouveau' | 'confirm'): void {
     this.passwordVisible[field] = !this.passwordVisible[field];
+  }
+
+  removeAvatar(): void {
+    this.formData.avatarUrl = null;
+    this.profile.avatarUrl  = null;
+    localStorage.removeItem('avatarUrl');
   }
 
   private showSuccess(msg: string): void {

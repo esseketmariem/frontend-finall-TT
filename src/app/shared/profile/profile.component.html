@@ -8,20 +8,28 @@
   <div class="profile-card">
 
     <!-- Avatar -->
-    <div class="profile-avatar-section">
-      <div class="profile-avatar" (click)="triggerAvatarUpload()">
-        <img *ngIf="formData.avatarUrl" [src]="formData.avatarUrl" alt="Avatar" class="avatar-img"/>
-        <span *ngIf="!formData.avatarUrl" class="avatar-initials">{{ getInitials() }}</span>
-        <div class="avatar-overlay">
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M12 2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8z"/>
-            <circle cx="8" cy="8" r="2.5"/>
-          </svg>
-        </div>
-      </div>
-      <input id="avatarInput" type="file" accept="image/*" hidden (change)="onAvatarChange($event)"/>
-      <p class="avatar-hint">Cliquez pour changer la photo</p>
+<div class="profile-avatar-section">
+  <div class="profile-avatar" (click)="triggerAvatarUpload()">
+    <img *ngIf="formData.avatarUrl" [src]="formData.avatarUrl" alt="Avatar" class="avatar-img"/>
+    <span *ngIf="!formData.avatarUrl" class="avatar-initials">{{ getInitials() }}</span>
+    <div class="avatar-overlay">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8z"/>
+        <circle cx="8" cy="8" r="2.5"/>
+      </svg>
     </div>
+  </div>
+  <input id="avatarInput" type="file" accept="image/*" hidden (change)="onAvatarChange($event)"/>
+  <p class="avatar-hint">Cliquez pour changer la photo</p>
+
+  <!-- ✅ Bouton supprimer avatar — visible uniquement si avatar présent -->
+  <button
+    *ngIf="formData.avatarUrl"
+    class="btn btn--remove-avatar"
+    (click)="removeAvatar()">
+    🗑 Supprimer la photo
+  </button>
+</div>
 
     <!-- Form -->
     <div class="profile-form">

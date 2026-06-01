@@ -35,10 +35,10 @@ export const routes: Routes = [
   },
 
   {
-    path: 'metier',
-    component: MetierDashboardComponent,
-    canActivate: [authGuard, metierGuard]
-  },
+  path: 'metier-dashboard',
+  component: MetierDashboardComponent,
+  canActivate: [authGuard, metierGuard]
+},
   {
     path: 'add-ticket',
     component: AddTicketComponent,

@@ -1,41 +1,38 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* ── TOKENS ── */
 :root {
-  --bg-page:        #09090d;
-  --bg-card:        #0f0f14;
-  --bg-elevated:    #141419;
-  --bg-input:       #0c0c10;
-  --bg-hover:       #1a1a21;
-  --border:         rgba(255,255,255,0.07);
+  --bg-page:        #ffffff;
+  --bg-card:        #ffffff;
+  --bg-elevated:    #f7f7f7;
+  --bg-input:       #f9f9f9;
+  --bg-hover:       #f0f0f0;
+  --border:         rgba(0,0,0,0.10);
   --border-focus:   rgba(221,0,49,0.4);
-  --text-primary:   #f0f0f5;
-  --text-secondary: #8b8b9e;
-  --text-hint:      #3e3e52;
+  --text-primary:   #1a1a1a;
+  --text-secondary: #555555;
+  --text-hint:      #aaaaaa;
   --accent:         #dd0031;
   --accent-hover:   #c4002b;
-  --accent-muted:   rgba(221,0,49,0.10);
-  --accent-border:  rgba(221,0,49,0.25);
+  --accent-muted:   rgba(221,0,49,0.08);
+  --accent-border:  rgba(221,0,49,0.20);
   --success-bg:     rgba(46,204,113,0.08);
-  --success-text:   #2ecc71;
+  --success-text:   #1e7e34;
   --success-border: rgba(46,204,113,0.22);
   --danger-bg:      rgba(239,68,68,0.08);
-  --danger-text:    #ef4444;
+  --danger-text:    #c0392b;
   --danger-border:  rgba(239,68,68,0.22);
   --metier-bg:      rgba(99,102,241,0.10);
-  --metier-text:    #a5b4fc;
+  --metier-text:    #4338ca;
   --ba-bg:          rgba(34,197,94,0.09);
-  --ba-text:        #4ade80;
+  --ba-text:        #15803d;
 }
 
-/* Force le fond sombre sur le host et toute la page */
 :host {
   display: block;
   background: var(--bg-page);
   min-height: 100vh;
 }
 
-/* ── PAGE LAYOUT ── */
 .profile-page {
   min-height: 100vh;
   background: var(--bg-page);
@@ -44,7 +41,6 @@
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── ALERTS ── */
 .alert {
   padding: 10px 16px;
   border-radius: 9px;
@@ -67,7 +63,6 @@
   border: 1px solid var(--danger-border);
 }
 
-/* ── WRAPPER ── */
 .profile-wrapper {
   max-width: 680px;
   margin: 0 auto;
@@ -76,7 +71,6 @@
   gap: 16px;
 }
 
-/* Page heading */
 .profile-heading {
   display: flex;
   align-items: center;
@@ -97,16 +91,14 @@
   color: var(--accent);
 }
 
-/* ── CARD ── */
 .profile-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.03) inset;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
 }
 
-/* ── AVATAR SECTION ── */
 .profile-avatar-section {
   display: flex;
   flex-direction: column;
@@ -118,7 +110,6 @@
   position: relative;
 }
 
-/* Subtle top accent line */
 .profile-avatar-section::before {
   content: '';
   position: absolute;
@@ -164,7 +155,7 @@
 .avatar-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.58);
+  background: rgba(0,0,0,0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -180,7 +171,6 @@
   color: #fff;
 }
 
-/* User name + role under avatar */
 .avatar-name {
   font-size: 15px;
   font-weight: 700;
@@ -214,7 +204,6 @@
   margin-top: 2px;
 }
 
-/* ── FORM ── */
 .profile-form {
   padding: 24px;
   display: flex;
@@ -223,7 +212,6 @@
   background: var(--bg-card);
 }
 
-/* Section label inside form */
 .form-section-label {
   font-size: 10px;
   font-weight: 600;
@@ -285,7 +273,6 @@
   box-shadow: none !important;
 }
 
-/* ── ACTIONS ── */
 .profile-actions {
   display: flex;
   gap: 10px;
@@ -313,12 +300,12 @@
   background: var(--accent);
   color: #fff;
   border-color: var(--accent);
-  box-shadow: 0 2px 12px rgba(221,0,49,0.28);
+  box-shadow: 0 2px 12px rgba(221,0,49,0.22);
 }
 
 .btn--save:hover {
   background: var(--accent-hover);
-  box-shadow: 0 4px 20px rgba(221,0,49,0.42);
+  box-shadow: 0 4px 20px rgba(221,0,49,0.32);
 }
 
 .btn--password {
@@ -330,14 +317,13 @@
 .btn--password:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
-  border-color: rgba(255,255,255,0.12);
+  border-color: rgba(0,0,0,0.18);
 }
 
-/* ── PASSWORD MODAL ── */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.72);
+  background: rgba(0,0,0,0.35);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -352,7 +338,7 @@
 }
 
 .modal-box {
-  background: var(--bg-elevated);
+  background: #ffffff;
   border-radius: 16px;
   width: 100%;
   max-width: 420px;
@@ -360,8 +346,8 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  border: 1px solid rgba(255,255,255,0.10);
-  box-shadow: 0 24px 60px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.03) inset;
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.12);
   animation: slideModal 0.2s ease;
 }
 
@@ -400,11 +386,10 @@
 }
 
 .modal-close:hover {
-  background: var(--bg-card);
+  background: var(--bg-elevated);
   color: var(--text-primary);
 }
 
-/* Password input with eye toggle */
 .input-password {
   display: flex;
   align-items: center;
@@ -475,4 +460,22 @@
 .btn--cancel:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
+}
+.btn--remove-avatar {
+  margin-top: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.14s, opacity 0.14s;
+}
+
+.btn--remove-avatar:hover {
+  opacity: 0.8;
 }

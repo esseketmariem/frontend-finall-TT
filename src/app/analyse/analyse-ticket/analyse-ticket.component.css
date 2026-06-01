@@ -1,27 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-
 :host {
-  --bg-base:     #0c0c0f;
-  --bg-1:        #111115;
-  --bg-2:        #17171c;
-  --bg-3:        #1e1e24;
-  --bg-4:        #26262e;
-  --bg-5:        #2f2f38;
-  --border-1:    rgba(255,255,255,0.055);
-  --border-2:    rgba(255,255,255,0.10);
-  --border-3:    rgba(255,255,255,0.16);
-  --text-1:      #eeeef0;
-  --text-2:      #9898a5;
-  --text-3:      #555560;
-  --accent:      #4a8ee8;
-  --accent-bg:   rgba(74,142,232,0.10);
-  --done:        #34c47c;
-  --done-bg:     rgba(52,196,124,0.08);
-  --done-border: rgba(52,196,124,0.22);
-  --todo:        #e8a020;
-  --todo-bg:     rgba(232,160,32,0.08);
-  --danger:      #e05555;
-  --danger-bg:   rgba(224,85,85,0.08);
+  --bg-base:     #f0f4fa;
+  --bg-1:        #e8eef8;
+  --bg-2:        #dde6f5;
+  --bg-3:        #d0dcf0;
+  --bg-4:        #c3d1eb;
+  --bg-5:        #b5c6e4;
+  --border-1:    rgba(26,70,140,0.07);
+  --border-2:    rgba(26,70,140,0.13);
+  --border-3:    rgba(26,70,140,0.20);
+  --text-1:      #1a2540;
+  --text-2:      #4a6080;
+  --text-3:      #8aaccc;
+  --accent:      #1a6fd4;
+  --accent-bg:   rgba(26,111,212,0.10);
+  --done:        #2ecc71;
+  --done-bg:     rgba(46,204,113,0.10);
+  --done-border: rgba(46,204,113,0.28);
+  --todo:        #f59e0b;
+  --todo-bg:     rgba(245,158,11,0.10);
+  --danger:      #ef4444;
+  --danger-bg:   rgba(239,68,68,0.10);
   font-family: 'DM Sans', 'Segoe UI', sans-serif;
   display: block;
 }

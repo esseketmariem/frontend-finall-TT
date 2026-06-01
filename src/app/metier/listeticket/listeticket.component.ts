@@ -8,6 +8,7 @@ import { TicketService } from '../../services/ticket.service';
 import { Ticket } from '../../models/ticket';
 import { Subscription, Observable } from 'rxjs';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+
 interface Commentaire {
   id: number;
   commentaire?: string;
@@ -128,37 +129,51 @@ export class ListeticketComponent implements OnInit, OnDestroy, OnChanges {
 
   // ── Tickets ───────────────────────────────────
   loadTickets(): void {
-    const metier = this.isMetier();
     this.loading = true;
     this.error   = null;
 
-    if (metier) {
-      const user = this.getCurrentUser();
+    const user = this.getCurrentUser();
+
+    if (this.isMetier()) {
+      // ✅ FIX 2 : toujours charger uniquement les tickets du métier connecté
       if (!user?.id) {
         this.error   = 'Utilisateur non identifié. Veuillez vous reconnecter.';
         this.loading = false;
         return;
       }
+      this.subscriptions.add(
+        this.http.get<Ticket[]>(
+          `${this.apiUrl}/tickets/user/${user.id}`,
+          { headers: this.getAuthHeaders() }
+        ).subscribe({
+          next: (data: Ticket[]) => {
+            this.tickets = data;
+            this.filterTickets();
+            this.loading = false;
+          },
+          error: (err: unknown) => {
+            console.error('Erreur chargement:', err);
+            this.error   = 'Erreur lors du chargement des tickets';
+            this.loading = false;
+          }
+        })
+      );
+    } else {
+      this.subscriptions.add(
+        this.ticketService.getAllTickets().subscribe({
+          next: (data: Ticket[]) => {
+            this.tickets = data;
+            this.filterTickets();
+            this.loading = false;
+          },
+          error: (err: unknown) => {
+            console.error('Erreur chargement:', err);
+            this.error   = 'Erreur lors du chargement des tickets';
+            this.loading = false;
+          }
+        })
+      );
     }
-
-    const obs: Observable<Ticket[]> = metier
-      ? this.ticketService.getMesTickets()
-      : this.ticketService.getAllTickets();
-
-    this.subscriptions.add(
-      obs.subscribe({
-        next: (data: Ticket[]) => {
-          this.tickets = data;
-          this.filterTickets();
-          this.loading = false;
-        },
-        error: (err: unknown) => {
-          console.error('Erreur chargement:', err);
-          this.error   = 'Erreur lors du chargement des tickets';
-          this.loading = false;
-        }
-      })
-    );
   }
 
   filterTickets(): void {
@@ -218,8 +233,18 @@ export class ListeticketComponent implements OnInit, OnDestroy, OnChanges {
     return ticket.statut !== 'EN_COURS' && ticket.statut !== 'A_FAIRE';
   }
 
+  // ✅ FIX 1 : suppression bloquée si statut ≠ EN_COURS
   deleteTicket(id: number): void {
+    const ticket = this.tickets.find(t => t.id === id);
+    if (!ticket) return;
+
+    if (ticket.statut !== 'EN_COURS') {
+      alert('Ce ticket ne peut pas être supprimé car il est déjà en cours d\'analyse ou traité.');
+      return;
+    }
+
     if (!confirm('Supprimer ce ticket ?')) return;
+
     this.subscriptions.add(
       this.ticketService.deleteTicket(id).subscribe({
         next: () => {
@@ -250,7 +275,6 @@ export class ListeticketComponent implements OnInit, OnDestroy, OnChanges {
       next: (data: Commentaire[]) => {
         this.commentaires    = data;
         this.loadingComments = false;
-        console.log(`📜 [Commentaires] ${data.length} commentaires pour ticket ${ticketId}`);
       },
       error: (err: unknown) => {
         console.error('Erreur chargement commentaires:', err);

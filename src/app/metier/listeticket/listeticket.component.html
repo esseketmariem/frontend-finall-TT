@@ -109,13 +109,6 @@
           <option value="APPROUVE">Approuvé</option>
           <option value="REJETE">Rejeté</option>
         </select>
-
-        <select [(ngModel)]="selectedPriorite" (change)="filterTickets()">
-          <option value="ALL">Toutes les priorités</option>
-          <option value="HAUTE">Haute</option>
-          <option value="MOYENNE">Moyenne</option>
-          <option value="BASSE">Basse</option>
-        </select>
       </div>
 
       <!-- Tableau -->
@@ -211,14 +204,16 @@
                     {{ isTicketLocked(t) ? '🔒' : '✏' }}
                   </button>
 
-                  <button
-                    *ngIf="isAdmin() || isMetier()"
-                    class="action-btn danger"
-                    title="Supprimer (uniquement si EN_COURS)"
-                    [disabled]="t.statut !== 'EN_COURS'"
-                    (click)="deleteTicket(t.id!)">
-                    🗑
-                  </button>
+                  <!-- ✅ Après -->
+<button
+  *ngIf="isAdmin() || isMetier()"
+  class="action-btn danger"
+  [class.disabled]="t.statut !== 'EN_COURS'"
+  [title]="t.statut !== 'EN_COURS' ? 'Suppression impossible — ticket en cours d\'analyse' : 'Supprimer ce ticket'"
+  [disabled]="t.statut !== 'EN_COURS'"
+  (click)="t.statut === 'EN_COURS' && deleteTicket(t.id!)">
+  🗑
+</button>
                 </div>
               </td>
 
